@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SNAFRATE — Sprint Checklist</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #F0F4F8; color: #111827; min-height: 100vh; }
+
+  /* Header */
+  .site-header { background: #1E56B0; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .site-header h1 { color: #fff; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  .site-header .sub { color: #BBDDEE; font-size: 13px; margin-top: 2px; }
+  .progress-wrap { display: flex; align-items: center; gap: 12px; }
+  .progress-bar { width: 200px; height: 8px; background: rgba(255,255,255,0.25); border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #F4A300; border-radius: 999px; transition: width 0.4s ease; }
+  .progress-label { color: #fff; font-size: 13px; font-weight: 600; white-space: nowrap; }
+
+  /* Layout */
+  .main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 60px; }
+
+  /* Phase tabs */
+  .phase-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .phase-tab { padding: 8px 18px; border-radius: 999px; border: 2px solid #1E56B0; color: #1E56B0; font-size: 13px; font-weight: 600; cursor: pointer; background: #fff; transition: all 0.2s; }
+  .phase-tab.active { background: #1E56B0; color: #fff; }
+  .phase-tab:hover:not(.active) { background: #EAF1FB; }
+
+  /* Month card */
+  .month-card { background: #fff; border-radius: 14px; border: 1px solid #E2E8F0; margin-bottom: 20px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .month-header { background: #1E56B0; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+  .month-header h2 { color: #fff; font-size: 15px; font-weight: 700; }
+  .month-header .meta { color: #BBDDEE; font-size: 12px; margin-top: 2px; }
+  .month-header .toggle { color: #fff; font-size: 18px; transition: transform 0.25s; }
+  .month-header.collapsed .toggle { transform: rotate(-90deg); }
+  .month-progress { color: #F4A300; font-size: 12px; font-weight: 700; margin-left: auto; margin-right: 12px; }
+
+  /* Week section */
+  .month-body { padding: 0; }
+  .week-section { border-bottom: 1px solid #EEF2F6; }
+  .week-section:last-child { border-bottom: none; }
+  .week-header { padding: 12px 20px; background: #EAF1FB; display: flex; align-items: center; gap: 10px; }
+  .week-label { font-size: 13px; font-weight: 700; color: #1E56B0; }
+  .week-dates { font-size: 11px; color: #888; }
+  .week-focus { font-size: 12px; color: #555; font-style: italic; margin-left: auto; }
+
+  /* Task item */
+  .task-list { padding: 4px 0; }
+  .task-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 20px; border-bottom: 1px solid #F5F7FA; transition: background 0.15s; }
+  .task-item:last-child { border-bottom: none; }
+  .task-item:hover { background: #FAFBFF; }
+  .task-item.done { opacity: 0.55; }
+  .task-item.done .task-name { text-decoration: line-through; color: #888; }
+
+  .task-check { width: 18px; height: 18px; border: 2px solid #1E56B0; border-radius: 4px; cursor: pointer; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .task-check.checked { background: #1E56B0; border-color: #1E56B0; }
+  .task-check.checked::after { content: '✓'; color: #fff; font-size: 11px; font-weight: 700; }
+
+  .task-content { flex: 1; min-width: 0; }
+  .task-name { font-size: 13px; font-weight: 600; color: #111; line-height: 1.4; }
+  .task-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; align-items: center; }
+  .tag { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .tag-dev { background: #EAF1FB; color: #1E56B0; }
+  .tag-branch { background: #F0FAF4; color: #1A7A4A; font-family: monospace; font-size: 10px; }
+  .tag-blocks { background: #FDF0F0; color: #C0392B; }
+  .tag-dep { background: #FFF8E1; color: #8B4513; }
+  .task-dep { font-size: 11px; color: #888; margin-top: 3px; }
+
+  /* Dependency map */
+  .dep-map { margin-bottom: 24px; }
+  .dep-map h3 { font-size: 14px; font-weight: 700; color: #1E56B0; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #1E56B0; }
+  .dep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+  .dep-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 14px; border-left: 4px solid #1E56B0; }
+  .dep-card .module { font-size: 13px; font-weight: 700; color: #111; }
+  .dep-card .dep-needs { font-size: 11px; color: #888; margin-top: 4px; }
+  .dep-card .dep-needs strong { color: #C0392B; }
+
+  /* Stats bar */
+  .stats-bar { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+  .stat-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 20px; flex: 1; min-width: 140px; text-align: center; }
+  .stat-num { font-size: 28px; font-weight: 700; color: #1E56B0; line-height: 1; }
+  .stat-label { font-size: 12px; color: #888; margin-top: 4px; }
+
+  /* Filter */
+  .filter-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .filter-label { font-size: 12px; color: #888; font-weight: 600; }
+  .dev-filter { padding: 5px 12px; border-radius: 999px; border: 1.5px solid #ccc; font-size: 12px; font-weight: 600; cursor: pointer; background: #fff; color: #555; transition: all 0.2s; }
+  .dev-filter.active { background: #1E56B0; border-color: #1E56B0; color: #fff; }
+
+  /* Hidden */
+  .phase-panel { display: none; }
+  .phase-panel.active { display: block; }
+
+  .reset-btn { padding: 7px 16px; border-radius: 8px; border: 1.5px solid #C0392B; color: #C0392B; font-size: 12px; font-weight: 600; cursor: pointer; background: #fff; margin-left: auto; }
+  .reset-btn:hover { background: #FDF0F0; }
+
+  @media (max-width: 600px) {
+    .site-header { padding: 16px; }
+    .main { padding: 16px 12px 48px; }
+    .progress-bar { width: 120px; }
+    .week-focus { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div>
+    <h1>SNAFRATE — Sprint Build Checklist</h1>
+    <div class="sub">March → September 2026  ·  Plain PHP MVC  ·  Royal Blue #1E56B0  ·  Inter font</div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="globalBar" style="width:0%"></div></div>
+    <span class="progress-label" id="globalLabel">0 / 0 done</span>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total Tasks</div></div>
+    <div class="stat-card"><div class="stat-num" id="statDone">0</div><div class="stat-label">Completed</div></div>
+    <div class="stat-card"><div class="stat-num" id="statLeft">0</div><div class="stat-label">Remaining</div></div>
+    <div class="stat-card"><div class="stat-num" id="statPct">0%</div><div class="stat-label">Progress</div></div>
+  </div>
+
+  <!-- Phase tabs -->
+  <div class="phase-tabs">
+    <button class="phase-tab active" onclick="showPhase(0)">Phase 1 — March</button>
+    <button class="phase-tab" onclick="showPhase(1)">Phase 2 — Apr–May</button>
+    <button class="phase-tab" onclick="showPhase(2)">Phase 3 — Jun–Jul</button>
+    <button class="phase-tab" onclick="showPhase(3)">Phase 4 — Aug–Sep</button>
+    <button class="phase-tab" onclick="showPhase(4)">📦 Dependency Map</button>
+  </div>
+
+  <!-- Filter row -->
+  <div class="filter-row" id="filterRow">
+    <span class="filter-label">Filter by dev:</span>
+    <button class="dev-filter active" onclick="setFilter('all')">All</button>
+    <button class="dev-filter" onclick="setFilter('Lead')">Lead</button>
+    <button class="dev-filter" onclick="setFilter('BE1')">BE1</button>
+    <button class="dev-filter" onclick="setFilter('BE2')">BE2</button>
+    <button class="dev-filter" onclick="setFilter('BE3')">BE3</button>
+    <button class="dev-filter" onclick="setFilter('FE1')">FE1</button>
+    <button class="dev-filter" onclick="setFilter('FE2')">FE2</button>
+    <button class="dev-filter" onclick="setFilter('Frank')">Frank</button>
+    <button class="reset-btn" onclick="resetAll()">Reset All</button>
+  </div>
+
+  <div id="phase-panels"></div>
+</main>
+
+<script>
+const PHASES = [
+  {
+    name: "Phase 1 — March 2026",
+    theme: "Foundation: Architecture, Standards, Auth, Supplier Onboarding",
+    months: [{
+      name: "March 2026",
+      trial: "Trial begins",
+      weeks: [
+        { label: "Week 1", dates: "Mar 1–7", focus: "Architecture, DB migrations, CSS foundation",
+          tasks: [
+            { dev:"Lead",  name:"Define PHP MVC folder structure + document in README", branch:"chore/mvc-structure", dep:"Nothing — start here" },
+            { dev:"Lead",  name:"Set up CI/CD — PHP syntax check on every push to dev branch", branch:"chore/ci-setup", dep:"Nothing" },
+            { dev:"Lead",  name:"Document Git workflow in CONTRIBUTING.md (branch naming, PR process)", branch:"chore/git-workflow", dep:"Nothing" },
+            { dev:"BE1",   name:"Write ALL DB migrations — every table from the schema document (18 tables)", branch:"chore/db-migrations", dep:"MVC folder structure confirmed" },
+            { dev:"BE2",   name:"Set up PHP router — maps URLs to controllers, supports all HTTP methods", branch:"chore/php-router", dep:"MVC folder structure" },
+            { dev:"BE3",   name:"Request/response helpers — JSON wrapper, input validation class, error handler", branch:"chore/request-helpers", dep:"PHP router" },
+            { dev:"FE1",   name:"Create tokens.css — all color variables (#1E56B0, #F4A300 etc.) + Inter @font-face (self-hosted)", branch:"chore/tokens-css", dep:"Nothing — design handoff available" },
+            { dev:"FE2",   name:"Base layout shell — nav bar desktop + mobile bottom nav, page wrapper, grid", branch:"chore/base-layout", dep:"tokens.css merged" },
+            { dev:"Mobile",name:"Read all 4 project documents and produce mobile requirements list", branch:"—", dep:"Nothing" },
+          ]},
+        { label: "Week 2", dates: "Mar 8–14", focus: "Authentication backend + screens begin",
+          tasks: [
+            { dev:"BE1", name:"POST /api/auth/register — validate, hash password, create user, send welcome email", branch:"feature/auth-registration", dep:"DB migrations merged" },
+            { dev:"BE1", name:"POST /api/auth/login — validate credentials, return JWT token", branch:"feature/auth-login", dep:"auth-registration merged" },
+            { dev:"BE1", name:"POST /api/auth/logout — invalidate token", branch:"feature/auth-logout", dep:"auth-login merged" },
+            { dev:"BE1", name:"SMTP mail setup — PHP mailer configured, welcome email template live", branch:"feature/auth-smtp", dep:"auth-registration merged" },
+            { dev:"BE2", name:"Role middleware — check role on protected routes, return 401/403 appropriately", branch:"feature/auth-middleware", dep:"auth-login merged" },
+            { dev:"FE1", name:"Register screen — client-side validation, connected to POST /api/auth/register", branch:"feature/auth-register-screen", dep:"tokens.css, base-layout, design approved by Frank" },
+            { dev:"FE1", name:"Login screen — connected to POST /api/auth/login, stores token, Google OAuth button hidden on Ghana IP", branch:"feature/auth-login-screen", dep:"auth-register-screen merged" },
+            { dev:"Frank",name:"Refine OTP Entry screen in Stitch/Visly and approve for FE1", branch:"—", dep:"Nothing" },
+          ]},
+        { label: "Week 3", dates: "Mar 15–21", focus: "Auth completion + supplier onboarding backend",
+          tasks: [
+            { dev:"BE1", name:"POST /api/auth/forgot-password — generate OTP, store hash, send to email", branch:"feature/auth-forgot-password", dep:"SMTP setup merged" },
+            { dev:"BE1", name:"POST /api/auth/reset-password — validate OTP, update password, invalidate OTP", branch:"feature/auth-reset-password", dep:"auth-forgot-password merged" },
+            { dev:"BE2", name:"Supplier registration — POST /api/supplier/register, document upload, account type (Individual/Company)", branch:"feature/supplier-register", dep:"auth-middleware, DB migrations" },
+            { dev:"BE2", name:"Admin approval API — GET pending list, POST approve, POST reject with reason + email notification", branch:"feature/supplier-approval-api", dep:"supplier-register merged" },
+            { dev:"FE1", name:"OTP Entry + Reset Password screens — auto-submit on 6th digit, connected to APIs", branch:"feature/auth-otp-screen", dep:"auth-forgot/reset APIs, design approved" },
+            { dev:"FE2", name:"Supplier registration screen — account type selector, document upload, submit confirmation", branch:"feature/supplier-register-screen", dep:"supplier-register API, design approved by Frank" },
+            { dev:"Frank",name:"Design and approve: Supplier Product Upload screen + Cart screen", branch:"—", dep:"Nothing" },
+          ]},
+        { label: "Week 4", dates: "Mar 22–31", focus: "Admin approval UI + Phase 1 exit tests",
+          tasks: [
+            { dev:"FE2",   name:"Admin supplier approval UI — pending list, view documents, approve/reject inline", branch:"feature/supplier-approval-ui", dep:"supplier-approval-api, base-layout" },
+            { dev:"BE3",   name:"Seed categories table — all categories from PRD with slugs and commission rates", branch:"chore/categories-seed", dep:"DB migrations" },
+            { dev:"Lead",  name:"Phase 1 internal review — test all endpoints on staging, compile bug list", branch:"—", dep:"All Phase 1 features merged to dev" },
+            { dev:"All",   name:"Fix all critical and high Phase 1 bugs from review", branch:"fix/*", dep:"Review complete" },
+            { dev:"Frank", name:"Approve remaining Phase 1 screens: OTP, Reset Password, Supplier Register, Admin Approval", branch:"—", dep:"Nothing" },
+          ]},
+      ]
+    }]
+  },
+  {
+    name: "Phase 2 — April–May 2026",
+    theme: "Core Build: Marketplace, Imports, Orders, Wallet, Chat  ·  Trial ends May 31",
+    months: [
+      { name: "April 2026", trial: "Trial month 2", weeks: [
+        { label: "Week 5", dates: "Apr 1–7", focus: "Product CRUD backend + category filtering",
+          tasks: [
+            { dev:"BE2", name:"POST /api/supplier/products — create with images, price, category, MOQ, source_type", branch:"feature/product-create", dep:"supplier-approval, categories-seed" },
+            { dev:"BE2", name:"GET /api/products — list with filters: category, source_type, price, moq, search, page", branch:"feature/product-list-api", dep:"product-create merged" },
+            { dev:"BE2", name:"GET /api/products/{id} — product detail + supplier's other products", branch:"feature/product-detail-api", dep:"product-list-api merged" },
+            { dev:"BE2", name:"PUT + DELETE /api/supplier/products/{id} — edit and delete own product only (403 on others)", branch:"feature/product-edit-delete", dep:"product-create merged" },
+            { dev:"BE3", name:"Auto-hide logic — product hidden when stock=0 or expires_at is past", branch:"feature/product-auto-hide", dep:"product-create merged" },
+            { dev:"FE2", name:"Product listing page — grid, source filter chips, category sidebar, price filter, search bar", branch:"feature/product-listing-ui", dep:"product-list-api, design approved" },
+            { dev:"FE2", name:"Product detail page — images, description, price, MOQ, supplier info, more from supplier below", branch:"feature/product-detail-ui", dep:"product-detail-api, design approved" },
+          ]},
+        { label: "Week 6", dates: "Apr 8–14", focus: "Supplier upload UI + import request backend",
+          tasks: [
+            { dev:"FE1", name:"Supplier product upload screen — name, price, category dropdown, MOQ, images, source_type toggle", branch:"feature/product-upload-ui", dep:"product-create API, design approved" },
+            { dev:"BE2", name:"POST /api/import-requests — 6-field form, preferred supplier, status=pending, notifications", branch:"feature/import-request-create", dep:"auth-middleware, supplier-approval" },
+            { dev:"BE2", name:"POST /api/import-requests/{id}/respond — quote, timeline, shipping, customs, pricing transparency", branch:"feature/import-request-respond", dep:"import-request-create merged" },
+            { dev:"BE2", name:"POST /api/import-requests/{id}/confirm — customer accepts, triggers escrow hold", branch:"feature/import-request-confirm", dep:"import-request-respond, wallet stub OK" },
+            { dev:"BE2", name:"PATCH /api/import-requests/{id}/status — processing, shipped (tracking), delivered", branch:"feature/import-request-status", dep:"import-request-confirm merged" },
+            { dev:"FE2", name:"Import request form UI — 6 fields, image upload, preferred supplier selector", branch:"feature/import-request-form-ui", dep:"import-request-create API, design approved" },
+            { dev:"BE1", name:"Wishlist API — POST/DELETE /api/wishlist/{productId}, GET /api/wishlist", branch:"feature/wishlist-api", dep:"product-create merged" },
+          ]},
+        { label: "Week 7", dates: "Apr 15–21", focus: "Import transparency UI + follow system + wishlist",
+          tasks: [
+            { dev:"FE2", name:"Import request detail — quote + full transparency display: arrival window, shipping, customs, price breakdown, Confirm button", branch:"feature/import-detail-ui", dep:"import-request-respond API, design approved" },
+            { dev:"FE1", name:"Supplier follow — Follow/Unfollow button on store cards and product pages, persists on refresh", branch:"feature/follow-supplier", dep:"supplier-approval API" },
+            { dev:"FE2", name:"Wishlist UI — heart icon on cards and detail page, wishlist page in customer dashboard", branch:"feature/wishlist-ui", dep:"wishlist-api, design approved" },
+            { dev:"FE1", name:"Supplier dashboard — products tab: list, edit, delete own products", branch:"feature/supplier-products-dashboard", dep:"product-edit-delete API, design approved" },
+            { dev:"BE2", name:"GET /api/suppliers/{id} — public profile: store info, product count, Trust Score placeholder (0)", branch:"feature/supplier-profile-api", dep:"supplier-approval merged" },
+            { dev:"Frank",name:"Approve: Cart screen, Order Tracking screen, Wallet/Deposit screen (all 3 needed before Week 8)", branch:"—", dep:"Nothing" },
+          ]},
+        { label: "Week 8", dates: "Apr 22–30", focus: "Cart system + order placement + wallet API",
+          tasks: [
+            { dev:"BE3", name:"Cart API — GET, POST add, PUT update qty, DELETE remove item. Cart persists for logged-in users.", branch:"feature/cart-api", dep:"product-list-api, auth-middleware" },
+            { dev:"FE2", name:"Cart screen — item list, quantity steppers (min 1), remove with confirm, subtotal, checkout", branch:"feature/cart-ui", dep:"cart-api, design approved" },
+            { dev:"BE3", name:"POST /api/orders — place from cart, create order + order_items, clear cart, send confirmation email", branch:"feature/order-place-api", dep:"cart-api, auth-middleware" },
+            { dev:"FE1", name:"Order confirmation screen — order ID, item summary, Track Order CTA", branch:"feature/order-confirm-ui", dep:"order-place-api merged" },
+            { dev:"BE1", name:"Wallet API — GET balance + history, POST /api/wallet/deposit/paystack (returns payment URL)", branch:"feature/wallet-api", dep:"auth-middleware, DB migrations (wallets table)" },
+          ]},
+      ]},
+      { name: "May 2026", trial: "Trial ends May 31", weeks: [
+        { label: "Week 9", dates: "May 1–7", focus: "Order tracking + Paystack/Stripe webhooks + wallet UI",
+          tasks: [
+            { dev:"BE3", name:"PATCH /api/orders/{id}/status — supplier sets processing, shipped (+ tracking number), delivered", branch:"feature/order-status-api", dep:"order-place-api merged" },
+            { dev:"BE3", name:"POST /api/orders/{id}/confirm-delivery — customer confirms, triggers escrow release", branch:"feature/order-confirm-delivery", dep:"order-status-api, escrow" },
+            { dev:"FE1", name:"Order tracking UI — step timeline (Pending→Processing→Shipped→Delivered), tracking number, Confirm Delivery button", branch:"feature/order-tracking-ui", dep:"order-status-api, design approved" },
+            { dev:"BE1", name:"POST /api/webhooks/paystack — validate signature, update wallet balance on success", branch:"feature/paystack-webhook", dep:"wallet-api merged" },
+            { dev:"BE1", name:"POST /api/wallet/deposit/stripe + POST /api/webhooks/stripe — Stripe payment intent + webhook", branch:"feature/stripe-webhook", dep:"wallet-api merged" },
+            { dev:"FE2", name:"Wallet screen — GHS balance, total spent, transaction history, Paystack + Stripe deposit buttons", branch:"feature/wallet-ui", dep:"wallet-api + webhooks, design approved" },
+          ]},
+        { label: "Week 10", dates: "May 8–14", focus: "Escrow system + order management + order list APIs",
+          tasks: [
+            { dev:"BE3", name:"Escrow — hold on order confirm, release on delivery confirm, link to disputes. Wallet deducted at order only.", branch:"feature/escrow-system", dep:"order-place-api, wallet-api" },
+            { dev:"BE3", name:"GET /api/orders (customer) + GET /api/supplier/orders (supplier) with ?status= filter", branch:"feature/orders-list-api", dep:"order-place-api merged" },
+            { dev:"FE2", name:"Customer orders page — list with status chips (color-coded), link to tracking detail", branch:"feature/customer-orders-ui", dep:"orders-list-api, design approved" },
+            { dev:"FE1", name:"Supplier orders page — incoming orders, accept/reject, update status, add tracking number", branch:"feature/supplier-orders-ui", dep:"order-status-api, design approved" },
+            { dev:"BE1", name:"Order confirmation email + order status change email templates (shipped notification)", branch:"feature/order-emails", dep:"SMTP setup, order-place-api" },
+          ]},
+        { label: "Week 11", dates: "May 15–21", focus: "Chat system — general (24hr expiry) and order-linked (persistent)",
+          tasks: [
+            { dev:"BE1", name:"Chat API — POST initiate (customer only), GET list, GET messages. Expiry enforced per chat type.", branch:"feature/chat-api", dep:"auth-middleware, supplier-approval" },
+            { dev:"BE1", name:"POST /api/chats/{id}/messages — send text + optional media. expires_at set for general, NULL for order-linked.", branch:"feature/chat-send-message", dep:"chat-api merged" },
+            { dev:"BE1", name:"PUT /api/chats/{id}/messages/{id} (edit within 3 min only) + PATCH star/unstar message", branch:"feature/chat-edit-star", dep:"chat-send-message merged" },
+            { dev:"BE1", name:"POST /api/chats/{id}/rate — customer rates supplier 1–5 after chat closes", branch:"feature/chat-rating", dep:"chat-api merged" },
+            { dev:"FE1", name:"Chat UI — bubbles, send input, media upload, star/edit context menu, expiry placeholder, order-linked badge", branch:"feature/chat-ui", dep:"chat-api + all chat endpoints, design approved" },
+            { dev:"BE1", name:"In-app notification — notification record created on new chat message, bell badge count", branch:"feature/chat-notification", dep:"chat-api merged" },
+          ]},
+        { label: "Week 12", dates: "May 22–31", focus: "Integration, dashboards, trial evaluation",
+          tasks: [
+            { dev:"BE2", name:"Import request auto-creates persistent order-linked chat thread between buyer and supplier/admin", branch:"feature/import-chat-link", dep:"import-request-create, chat-api" },
+            { dev:"FE2", name:"Customer dashboard — active orders, in-transit, recent orders, followed suppliers, wallet balance widget", branch:"feature/customer-dashboard-ui", dep:"orders-list-api, wallet-api, follow-supplier, design approved" },
+            { dev:"FE1", name:"Notification bell — unread count badge, dropdown list, mark as read, navigate to source", branch:"feature/notifications-ui", dep:"chat-notification, order-emails" },
+            { dev:"Lead", name:"Full Phase 2 integration test on staging — end-to-end user journey with real data", branch:"—", dep:"All Phase 2 features merged" },
+            { dev:"All",  name:"Fix all critical + high bugs from integration test before May 31", branch:"fix/*", dep:"Integration test complete" },
+            { dev:"Frank",name:"Trial evaluation — review Phase 1 + 2 deliverables. Team contract decision.", branch:"—", dep:"Integration test passed" },
+          ]},
+      ]},
+    ]
+  },
+  {
+    name: "Phase 3 — June–July 2026",
+    theme: "Intelligence Layer: Shorts, Trust Score, Capital Loop, Admin Panel",
+    months: [
+      { name: "June 2026", trial: "Post-trial", weeks: [
+        { label: "Week 13", dates: "Jun 1–7", focus: "Shorts upload backend + feed API",
+          tasks: [
+            { dev:"BE2", name:"POST /api/supplier/shorts — upload video linked to product, store on S3-compatible storage", branch:"feature/shorts-upload-api", dep:"product-create, supplier-approval" },
+            { dev:"BE2", name:"GET /api/shorts — paginated feed, followed suppliers prioritized for auth users", branch:"feature/shorts-feed-api", dep:"shorts-upload-api, follow-supplier" },
+            { dev:"BE2", name:"POST /api/shorts/{id}/view — increment view_count (debounced per IP)", branch:"feature/shorts-view-count", dep:"shorts-feed-api merged" },
+            { dev:"BE2", name:"DELETE /api/supplier/shorts/{id} (own only) + GET /api/supplier/shorts/{id}/stats", branch:"feature/shorts-manage-api", dep:"shorts-upload-api merged" },
+            { dev:"FE1", name:"Shorts upload UI in supplier dashboard — video picker, linked product selector, title, thumbnail", branch:"feature/shorts-upload-ui", dep:"shorts-upload-api, design approved" },
+            { dev:"Frank",name:"Design and approve: Shorts Feed screen + Supplier Profile/Store Page", branch:"—", dep:"Nothing" },
+          ]},
+        { label: "Week 14", dates: "Jun 8–14", focus: "Shorts feed frontend + supplier profile + Trust Score engine",
+          tasks: [
+            { dev:"FE1", name:"Shorts feed — vertical scroll, snap-to-short, autoplay muted, tap mute/unmute, product overlay, follow inline", branch:"feature/shorts-feed-ui", dep:"shorts-feed-api, follow-supplier, design approved" },
+            { dev:"FE1", name:"Supplier profile page — store info, Trust Score stars (placeholder until engine live), badges, product grid, follow", branch:"feature/supplier-profile-ui", dep:"supplier-profile-api, design approved" },
+            { dev:"FE1", name:"Shorts management in supplier dashboard — list own shorts, view counts, delete with confirm", branch:"feature/shorts-manage-ui", dep:"shorts-manage-api merged" },
+            { dev:"BE2", name:"Trust Score engine — composite score from: verification, orders, refund rate, communication rating, dispute outcomes, content reliability", branch:"feature/trust-score-engine", dep:"orders-list-api, chat-rating — disputes stub acceptable" },
+            { dev:"BE2", name:"Trust Score event logging — write to trust_score_events on every score-changing action", branch:"feature/trust-score-events", dep:"trust-score-engine merged" },
+          ]},
+        { label: "Week 15", dates: "Jun 15–21", focus: "Trust Score display + badges + dispute system",
+          tasks: [
+            { dev:"FE1", name:"Trust Score display on supplier profile — star rating, Verified Import Partner, Top China Supplier, Fast Responder, Clear Communicator badges (gold #F4A300 styling)", branch:"feature/trust-score-ui", dep:"trust-score-engine, supplier-profile-ui" },
+            { dev:"BE2", name:"Badge auto-award — Fast Responder (median response < threshold), Clear Communicator (avg rating > threshold)", branch:"feature/supplier-badges", dep:"trust-score-engine, chat-rating" },
+            { dev:"BE2", name:"Platform-Backed Supplier badge — awarded when Trust Score exceeds configured threshold", branch:"feature/platform-backed-badge", dep:"trust-score-engine merged" },
+            { dev:"BE3", name:"Dispute API — POST raise, GET detail, POST supplier response, POST admin ruling, escrow release per ruling, outcome → trust_score_events", branch:"feature/dispute-api", dep:"escrow-system, orders-list-api, auth-middleware" },
+            { dev:"FE2", name:"Dispute UI — customer raises dispute (reason + evidence upload), supplier response, admin ruling view", branch:"feature/dispute-ui", dep:"dispute-api, design approved by Frank" },
+          ]},
+        { label: "Week 16", dates: "Jun 22–30", focus: "Capital Loop engine + flash sales",
+          tasks: [
+            { dev:"BE2", name:"Capital Loop credit engine — credits from Shorts views, low refund rate, fast responses. Tiers from config. Auto-upgrade on threshold.", branch:"feature/capital-loop-engine", dep:"trust-score-engine, shorts-view-count, chat-rating" },
+            { dev:"BE2", name:"Capital Loop benefits engine — payout speed, fee discount, import limit, badge applied per tier automatically", branch:"feature/capital-loop-benefits", dep:"capital-loop-engine merged" },
+            { dev:"FE1", name:"Capital Loop dashboard — credits balance, tier name, active benefits, progress to next tier. Gold (#F4A300) on tier badges.", branch:"feature/capital-loop-ui", dep:"capital-loop-engine, design approved" },
+            { dev:"BE3", name:"Flash sale API — POST create, auto-activate/deactivate by timestamps, GET active sale", branch:"feature/flash-sale-api", dep:"auth-middleware (admin role)" },
+          ]},
+      ]},
+      { name: "July 2026", trial: "Post-trial", weeks: [
+        { label: "Week 17", dates: "Jul 1–7", focus: "Admin dashboard + content moderation + chat monitoring",
+          tasks: [
+            { dev:"BE3", name:"Admin stats API — total users, orders, revenue with daily/weekly/monthly filters", branch:"feature/admin-stats-api", dep:"orders-list-api, auth-middleware (admin)" },
+            { dev:"FE2", name:"Admin dashboard overview — stats cards, period filter, supplier queue widget", branch:"feature/admin-dashboard-ui", dep:"admin-stats-api, supplier-approval-api, design approved" },
+            { dev:"BE3", name:"Content moderation API — GET flagged queue, DELETE short or product", branch:"feature/content-moderation-api", dep:"shorts-upload-api, product-create, auth-middleware (admin)" },
+            { dev:"FE2", name:"Admin content moderation UI — flagged Shorts and products, preview, remove button", branch:"feature/content-moderation-ui", dep:"content-moderation-api, design approved" },
+            { dev:"BE3", name:"Chat keyword monitoring — scan for prohibited keywords, surface flagged chats to admin queue", branch:"feature/chat-monitoring", dep:"chat-api merged" },
+          ]},
+        { label: "Week 18", dates: "Jul 8–14", focus: "Admin flash sales + supplier payout system",
+          tasks: [
+            { dev:"FE2", name:"Admin flash sale UI — create form, active sale banner platform-wide with countdown", branch:"feature/flash-sale-ui", dep:"flash-sale-api, design approved" },
+            { dev:"BE1", name:"Supplier payout — Paystack/Flutterwave local, Stripe international. Payout speed modified by Capital Loop tier.", branch:"feature/supplier-payout", dep:"escrow-system, capital-loop-benefits, supplier-approval" },
+            { dev:"FE1", name:"Admin supplier management — full list, filter by status, approve/reject/suspend inline", branch:"feature/admin-supplier-ui", dep:"supplier-approval-api, design approved" },
+            { dev:"FE2", name:"Admin chat monitoring UI — flagged chat list, full thread view, dismiss/escalate", branch:"feature/admin-chat-ui", dep:"chat-monitoring merged" },
+          ]},
+        { label: "Week 19–20", dates: "Jul 15–31", focus: "Phase 3 integration + mobile handoff prep + responsive audit",
+          tasks: [
+            { dev:"Lead",       name:"Full Phase 3 integration test — Shorts, Trust Score, Capital Loop, Admin panel end to end", branch:"—", dep:"All Phase 3 features merged" },
+            { dev:"All",        name:"Fix all critical + high Phase 3 bugs", branch:"fix/*", dep:"Integration test complete" },
+            { dev:"Mobile",     name:"Produce full mobile requirements document — screen-by-screen differences, push notifications, camera, file picker needs", branch:"—", dep:"All Phase 3 APIs complete" },
+            { dev:"FE1 + FE2",  name:"Responsive audit — every screen tested at 360px, 390px, 768px, 1280px. Zero broken layouts.", branch:"fix/responsive-*", dep:"Phase 3 complete" },
+            { dev:"BE1",        name:"Password change endpoint + account settings page", branch:"feature/account-settings", dep:"auth-login merged" },
+          ]},
+      ]},
+    ]
+  },
+  {
+    name: "Phase 4 — Aug–Sep 2026",
+    theme: "Launch Preparation: QA, Security, Beta, Production Deploy, Public Launch",
+    months: [
+      { name: "August 2026", trial: "Pre-launch", weeks: [
+        { label: "Week 21–22", dates: "Aug 1–14", focus: "Full QA regression + performance audit",
+          tasks: [
+            { dev:"FE1 + FE2",     name:"Test every customer-facing user flow against PRD v1.0. Zero critical/high bugs.", branch:"—", dep:"All features merged" },
+            { dev:"BE1+BE2+BE3",   name:"Test every supplier and admin flow against PRD v1.0", branch:"—", dep:"All features merged" },
+            { dev:"Lead",          name:"Performance audit — all pages under 2s on 3G. Images compressed (WebP). Videos lazy-loaded.", branch:"fix/perf-*", dep:"QA pass" },
+            { dev:"FE1 + FE2",     name:"Mobile audit — all screens at 360px, 390px, 414px, 768px. Minimum 44px tap targets.", branch:"fix/responsive-*", dep:"QA pass" },
+            { dev:"BE1",           name:"DB query optimization — indexes on filtered columns, no N+1 queries on order/chat endpoints", branch:"fix/db-perf", dep:"QA pass" },
+          ]},
+        { label: "Week 23", dates: "Aug 15–21", focus: "Security audit — OWASP Top 10",
+          tasks: [
+            { dev:"BE1+BE2+BE3", name:"SQL injection audit — all queries use parameterized statements. Zero raw string concatenation in SQL.", branch:"fix/security-sqli", dep:"All features complete" },
+            { dev:"BE1+BE2+BE3", name:"XSS audit — all user input escaped on output. No innerHTML with unescaped data.", branch:"fix/security-xss", dep:"All features complete" },
+            { dev:"BE1",         name:"CSRF protection — all state-changing forms and AJAX calls include CSRF tokens", branch:"fix/security-csrf", dep:"All features complete" },
+            { dev:"BE1",         name:"Auth audit — JWT expiry works, token invalidated on logout, no sensitive data in tokens", branch:"fix/security-auth", dep:"All features complete" },
+            { dev:"Lead",        name:"China accessibility audit — load full platform from China IP via VPN. Zero blocked resources.", branch:"fix/china-compat", dep:"All features complete" },
+          ]},
+        { label: "Week 24", dates: "Aug 22–31", focus: "Load testing + compliance + production server setup",
+          tasks: [
+            { dev:"BE1 + Lead", name:"Load testing — 200 concurrent users via k6 or JMeter. No 5xx errors. Sub-2s response times.", branch:"fix/load-*", dep:"Security audit complete" },
+            { dev:"Frank",      name:"Ghana Data Protection Act 2012 review — consent, storage, privacy policy page published", branch:"—", dep:"Nothing" },
+            { dev:"Frank",      name:"Wallet KYC/AML open item resolved — approach decided and implemented or explicitly scoped post-launch", branch:"—", dep:"Nothing" },
+            { dev:"Frank",      name:"Refund policy finalized and published on platform. Referenced in order emails.", branch:"—", dep:"Nothing" },
+            { dev:"Lead",       name:"Production server — Alibaba Cloud HK, SSL (A grade), 24hr DB backups, self-hosted Sentry, uptime monitoring", branch:"chore/production-setup", dep:"Nothing" },
+          ]},
+      ]},
+      { name: "September 2026", trial: "LAUNCH", weeks: [
+        { label: "Week 25–26", dates: "Sep 1–14", focus: "Closed beta with real users",
+          tasks: [
+            { dev:"Frank",  name:"Invite 20–50 real beta users — mix of buyers and at least 5–10 suppliers. Structured feedback form.", branch:"—", dep:"Production server ready" },
+            { dev:"All",    name:"Daily monitoring: error logs, user feedback, morning triage standup", branch:"—", dep:"Beta live" },
+            { dev:"All",    name:"Fix all critical + high bugs from beta before Week 27", branch:"fix/*", dep:"Beta feedback" },
+            { dev:"Frank",  name:"Onboard minimum 10 approved suppliers — each with 5+ products. At least 2 China Direct capable.", branch:"—", dep:"Supplier approval flow live" },
+            { dev:"Lead",   name:"Final deployment checklist — DNS, SSL, backups, monitoring, error tracking all confirmed live. Rollback plan documented.", branch:"—", dep:"Beta bugs fixed" },
+          ]},
+        { label: "Week 27–28", dates: "Sep 15–30", focus: "Public launch + post-launch monitoring",
+          tasks: [
+            { dev:"Lead",       name:"DNS switch to production — flip from staging to production server", branch:"—", dep:"Deployment checklist signed off" },
+            { dev:"Frank",      name:"Launch announced — email to beta users, platform notification", branch:"—", dep:"DNS live" },
+            { dev:"Lead + BE1", name:"48-hour post-launch standby — monitor errors every 2 hours. Hotfix deployed within 4 hours if critical.", branch:"—", dep:"Launch" },
+            { dev:"Lead",       name:"Week 1 post-launch review — error rates, drop-off points, supplier onboarding friction. Written report.", branch:"—", dep:"7 days post-launch" },
+          ]},
+      ]},
+    ]
+  },
+];
+
+const DEP_MAP = [
+  { mod: "DB Schema + Migrations", needs: "Nothing", why: "Absolute starting point — all other backend work depends on this" },
+  { mod: "CSS tokens + Inter font setup", needs: "Nothing", why: "FE devs cannot style anything until tokens exist" },
+  { mod: "Auth — Register + Login", needs: "DB Schema", why: "Every module that touches a user requires Auth first" },
+  { mod: "Role Middleware", needs: "Auth", why: "No protected route can be built before middleware exists" },
+  { mod: "Supplier Onboarding", needs: "Auth, Role Middleware", why: "Suppliers are users — Auth must work" },
+  { mod: "Product CRUD", needs: "Supplier Onboarding, DB Schema", why: "Products belong to approved suppliers" },
+  { mod: "Product Listing (Customer)", needs: "Product CRUD, Categories", why: "Can't display products until suppliers can create them" },
+  { mod: "Import Request Form", needs: "Auth, Product Listing", why: "Customer must be logged in; supplier system must exist" },
+  { mod: "Cart System", needs: "Product Listing, Auth", why: "Cart items are products; user must be authenticated" },
+  { mod: "Order Placement", needs: "Cart, Wallet", why: "Order triggers escrow hold which requires wallet" },
+  { mod: "Wallet + Paystack/Stripe", needs: "Auth, DB Schema (wallets table)", why: "Wallet must exist before any order can be confirmed" },
+  { mod: "Escrow", needs: "Wallet, Order Placement", why: "Escrow holds wallet funds linked to an order record" },
+  { mod: "Chat — General", needs: "Auth, Supplier Onboarding", why: "Both parties must exist as users" },
+  { mod: "Chat — Order-Linked", needs: "Chat General, Orders", why: "Order-linked chat is an extension of the chat system" },
+  { mod: "Shorts Upload", needs: "Supplier Onboarding, Product CRUD", why: "Shorts link to products and belong to suppliers" },
+  { mod: "Shorts Feed", needs: "Shorts Upload", why: "Can't display shorts before suppliers can create them" },
+  { mod: "Trust Score Engine", needs: "Orders, Chat Rating, Disputes, Shorts", why: "Score draws from multiple completed modules" },
+  { mod: "Capital Loop Engine", needs: "Trust Score, Shorts, Order completion", why: "Credits earned from performance across completed features" },
+  { mod: "Admin Panel", needs: "All core modules", why: "Admin manages users, products, orders, content — all must exist" },
+  { mod: "Dispute System", needs: "Orders, Escrow, Chat", why: "Disputes are raised on orders and linked to escrow holds" },
+];
+
+// ── Render ──────────────────────────────────────────────────────
+let currentFilter = 'all';
+let taskStates = JSON.parse(localStorage.getItem('snafrate_tasks') || '{}');
+
+function taskId(phaseI, monthI, weekI, taskI) {
+  return `${phaseI}-${monthI}-${weekI}-${taskI}`;
+}
+
+function saveStates() {
+  localStorage.setItem('snafrate_tasks', JSON.stringify(taskStates));
+  updateStats();
+}
+
+function resetAll() {
+  if (!confirm('Reset all checkboxes?')) return;
+  taskStates = {};
+  saveStates();
+  document.querySelectorAll('.task-check').forEach(el => {
+    el.classList.remove('checked');
+    el.closest('.task-item').classList.remove('done');
+  });
+  updateStats();
+}
+
+function toggleTask(id, el) {
+  const item = el.closest('.task-item');
+  if (taskStates[id]) {
+    delete taskStates[id];
+    el.classList.remove('checked');
+    item.classList.remove('done');
+  } else {
+    taskStates[id] = true;
+    el.classList.add('checked');
+    item.classList.add('done');
+  }
+  saveStates();
+  updateMonthProgress();
+}
+
+function setFilter(dev) {
+  currentFilter = dev;
+  document.querySelectorAll('.dev-filter').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.task-item').forEach(item => {
+    const d = item.dataset.dev;
+    item.style.display = (dev === 'all' || d.includes(dev)) ? '' : 'none';
+  });
+}
+
+function showPhase(i) {
+  document.querySelectorAll('.phase-panel').forEach((p,j) => p.classList.toggle('active', j === i));
+  document.querySelectorAll('.phase-tab').forEach((t,j) => t.classList.toggle('active', j === i));
+  const filterRow = document.getElementById('filterRow');
+  filterRow.style.display = i === 4 ? 'none' : '';
+}
+
+function updateMonthProgress() {
+  document.querySelectorAll('.month-card').forEach(card => {
+    const checks = card.querySelectorAll('.task-check');
+    const done = card.querySelectorAll('.task-check.checked').length;
+    const pct = checks.length ? Math.round(done / checks.length * 100) : 0;
+    const prog = card.querySelector('.month-progress');
+    if (prog) prog.textContent = `${done}/${checks.length} (${pct}%)`;
+  });
+}
+
+function updateStats() {
+  const all = document.querySelectorAll('.task-check');
+  const done = document.querySelectorAll('.task-check.checked');
+  const total = all.length;
+  const doneN = done.length;
+  const pct = total ? Math.round(doneN / total * 100) : 0;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statDone').textContent = doneN;
+  document.getElementById('statLeft').textContent = total - doneN;
+  document.getElementById('statPct').textContent = pct + '%';
+  document.getElementById('globalBar').style.width = pct + '%';
+  document.getElementById('globalLabel').textContent = `${doneN} / ${total} done`;
+  updateMonthProgress();
+}
+
+function renderDepMap() {
+  const panel = document.createElement('div');
+  panel.className = 'phase-panel';
+  const map = document.createElement('div');
+  map.className = 'dep-map';
+  const h = document.createElement('h3');
+  h.textContent = '📦 Module Dependency Map — Build in This Order';
+  map.appendChild(h);
+  const grid = document.createElement('div');
+  grid.className = 'dep-grid';
+  DEP_MAP.forEach(d => {
+    const card = document.createElement('div');
+    card.className = 'dep-card';
+    card.innerHTML = `<div class="module">${d.mod}</div>
+      <div class="dep-needs">Needs: <strong>${d.needs}</strong></div>
+      <div class="dep-needs" style="margin-top:4px;color:#666">${d.why}</div>`;
+    grid.appendChild(card);
+  });
+  map.appendChild(grid);
+  panel.appendChild(map);
+  return panel;
+}
+
+function render() {
+  const container = document.getElementById('phase-panels');
+  container.innerHTML = '';
+
+  PHASES.forEach((phase, phaseI) => {
+    const panel = document.createElement('div');
+    panel.className = 'phase-panel' + (phaseI === 0 ? ' active' : '');
+
+    phase.months.forEach((month, monthI) => {
+      const card = document.createElement('div');
+      card.className = 'month-card';
+
+      const hdr = document.createElement('div');
+      hdr.className = 'month-header';
+      hdr.innerHTML = `
+        <div>
+          <h2>${month.name} ${month.trial ? '— ' + month.trial : ''}</h2>
+          <div class="meta">${phase.theme}</div>
+        </div>
+        <span class="month-progress">—</span>
+        <span class="toggle">▾</span>`;
+      hdr.addEventListener('click', () => {
+        hdr.classList.toggle('collapsed');
+        body.style.display = hdr.classList.contains('collapsed') ? 'none' : '';
+      });
+      card.appendChild(hdr);
+
+      const body = document.createElement('div');
+      body.className = 'month-body';
+
+      month.weeks.forEach((week, weekI) => {
+        const ws = document.createElement('div');
+        ws.className = 'week-section';
+
+        const wh = document.createElement('div');
+        wh.className = 'week-header';
+        wh.innerHTML = `<span class="week-label">${week.label}</span><span class="week-dates">${week.dates}</span><span class="week-focus">${week.focus}</span>`;
+        ws.appendChild(wh);
+
+        const tl = document.createElement('div');
+        tl.className = 'task-list';
+
+        week.tasks.forEach((task, taskI) => {
+          const id = taskId(phaseI, monthI, weekI, taskI);
+          const done = !!taskStates[id];
+          const item = document.createElement('div');
+          item.className = 'task-item' + (done ? ' done' : '');
+          item.dataset.dev = task.dev;
+
+          const check = document.createElement('div');
+          check.className = 'task-check' + (done ? ' checked' : '');
+          check.addEventListener('click', () => toggleTask(id, check));
+
+          const content = document.createElement('div');
+          content.className = 'task-content';
+
+          const name = document.createElement('div');
+          name.className = 'task-name';
+          name.textContent = task.name;
+
+          const meta = document.createElement('div');
+          meta.className = 'task-meta';
+          meta.innerHTML = `<span class="tag tag-dev">${task.dev}</span>` +
+            (task.branch !== '—' ? `<span class="tag tag-branch">⎇ ${task.branch}</span>` : '') +
+            (task.dep && task.dep !== 'Nothing' ? `<span class="tag tag-dep">⚡ Needs: ${task.dep.length > 50 ? task.dep.slice(0,50)+'…' : task.dep}</span>` : '');
+
+          content.appendChild(name);
+          content.appendChild(meta);
+          item.appendChild(check);
+          item.appendChild(content);
+          tl.appendChild(item);
+        });
+
+        ws.appendChild(tl);
+        body.appendChild(ws);
+      });
+
+      card.appendChild(body);
+      panel.appendChild(card);
+    });
+
+    container.appendChild(panel);
+  });
+
+  container.appendChild(renderDepMap());
+  updateStats();
+}
+
+render();
+</script>
+</body>
+</html>
