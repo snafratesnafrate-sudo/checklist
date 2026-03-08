@@ -831,7 +831,7 @@ function applyFilter(dev){
 function setFilter(dev, e){
   currentFilter = dev;
   document.querySelectorAll('.fchip').forEach(b=>b.classList.remove('active'));
-  e.target.classList.add('active');
+  e.classList.add('active');
   applyFilter(dev);
 }
 
