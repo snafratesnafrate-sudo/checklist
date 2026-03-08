@@ -3,601 +3,917 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SNAFRATE — Sprint Checklist</title>
+<title>SNAFRATE — Full Build Checklist</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: system-ui, -apple-system, sans-serif; background: #F0F4F8; color: #111827; min-height: 100vh; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-  /* Header */
-  .site-header { background: #1E56B0; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-  .site-header h1 { color: #fff; font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
-  .site-header .sub { color: #BBDDEE; font-size: 13px; margin-top: 2px; }
-  .progress-wrap { display: flex; align-items: center; gap: 12px; }
-  .progress-bar { width: 200px; height: 8px; background: rgba(255,255,255,0.25); border-radius: 999px; overflow: hidden; }
-  .progress-fill { height: 100%; background: #F4A300; border-radius: 999px; transition: width 0.4s ease; }
-  .progress-label { color: #fff; font-size: 13px; font-weight: 600; white-space: nowrap; }
+:root {
+  --blue:#1E56B0; --blue-lt:#EAF1FB; --blue-dk:#163D80;
+  --gold:#F4A300; --gold-lt:#FFF8E1;
+  --red:#C0392B; --red-lt:#FDF0F0;
+  --green:#1A7A4A; --green-lt:#F0FAF4;
+  --purple:#7D3C98; --purple-lt:#F5EEF8;
+  --amber:#B7770D; --amber-lt:#FEF9EC;
+  --bg:#F2F5FA; --card:#fff;
+  --border:#E2E8F0; --text:#111827; --muted:#6B7280;
+}
 
-  /* Layout */
-  .main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 60px; }
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
-  /* Phase tabs */
-  .phase-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
-  .phase-tab { padding: 8px 18px; border-radius: 999px; border: 2px solid #1E56B0; color: #1E56B0; font-size: 13px; font-weight: 600; cursor: pointer; background: #fff; transition: all 0.2s; }
-  .phase-tab.active { background: #1E56B0; color: #fff; }
-  .phase-tab:hover:not(.active) { background: #EAF1FB; }
+/* ── HEADER ── */
+.hdr{background:var(--blue-dk);padding:0 32px;display:flex;align-items:stretch;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:3px solid var(--gold)}
+.hdr-left{padding:18px 0;display:flex;flex-direction:column;gap:4px}
+.hdr h1{font-family:'Syne',sans-serif;font-size:21px;font-weight:800;color:#fff;letter-spacing:-0.5px}
+.hdr-sub{font-family:'DM Mono',monospace;font-size:11px;color:#8BAFD4;letter-spacing:0.3px}
+.hdr-right{display:flex;align-items:center;gap:20px;padding:18px 0}
+.prog-wrap{display:flex;align-items:center;gap:10px}
+.prog-bar{width:180px;height:6px;background:rgba(255,255,255,0.15);border-radius:999px;overflow:hidden}
+.prog-fill{height:100%;background:var(--gold);border-radius:999px;transition:width .4s ease}
+.prog-lbl{font-family:'DM Mono',monospace;font-size:12px;color:#fff;font-weight:500;white-space:nowrap}
+.stat-pills{display:flex;gap:8px}
+.pill{padding:4px 12px;border-radius:999px;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px}
+.pill-total{background:rgba(255,255,255,0.1);color:#fff}
+.pill-done{background:rgba(244,163,0,0.2);color:var(--gold)}
+.pill-left{background:rgba(255,255,255,0.07);color:#8BAFD4}
 
-  /* Month card */
-  .month-card { background: #fff; border-radius: 14px; border: 1px solid #E2E8F0; margin-bottom: 20px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-  .month-header { background: #1E56B0; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
-  .month-header h2 { color: #fff; font-size: 15px; font-weight: 700; }
-  .month-header .meta { color: #BBDDEE; font-size: 12px; margin-top: 2px; }
-  .month-header .toggle { color: #fff; font-size: 18px; transition: transform 0.25s; }
-  .month-header.collapsed .toggle { transform: rotate(-90deg); }
-  .month-progress { color: #F4A300; font-size: 12px; font-weight: 700; margin-left: auto; margin-right: 12px; }
+/* ── LAYOUT ── */
+.main{max-width:1140px;margin:0 auto;padding:28px 24px 80px}
 
-  /* Week section */
-  .month-body { padding: 0; }
-  .week-section { border-bottom: 1px solid #EEF2F6; }
-  .week-section:last-child { border-bottom: none; }
-  .week-header { padding: 12px 20px; background: #EAF1FB; display: flex; align-items: center; gap: 10px; }
-  .week-label { font-size: 13px; font-weight: 700; color: #1E56B0; }
-  .week-dates { font-size: 11px; color: #888; }
-  .week-focus { font-size: 12px; color: #555; font-style: italic; margin-left: auto; }
+/* ── TABS ── */
+.tabs-wrap{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:22px}
+.tab{padding:8px 16px;border-radius:8px;border:1.5px solid var(--border);font-size:12px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer;background:var(--card);color:var(--muted);transition:all .18s;white-space:nowrap}
+.tab:hover{border-color:#aaa;color:var(--text)}
+.tab.t-build{border-color:var(--blue);color:var(--blue)}
+.tab.t-build.active,.tab.t-build:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.tab.t-sec{border-color:var(--red);color:var(--red)}
+.tab.t-sec.active,.tab.t-sec:hover{background:var(--red);color:#fff}
+.tab.t-mkt{border-color:var(--green);color:var(--green)}
+.tab.t-mkt.active,.tab.t-mkt:hover{background:var(--green);color:#fff}
+.tab.t-reg{border-color:var(--purple);color:var(--purple)}
+.tab.t-reg.active,.tab.t-reg:hover{background:var(--purple);color:#fff}
+.tab.t-post{border-color:var(--amber);color:var(--amber)}
+.tab.t-post.active,.tab.t-post:hover{background:var(--amber);color:#fff}
+.tab.t-dep{border-color:var(--muted);color:var(--muted)}
+.tab.t-dep.active,.tab.t-dep:hover{background:var(--muted);color:#fff}
 
-  /* Task item */
-  .task-list { padding: 4px 0; }
-  .task-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 20px; border-bottom: 1px solid #F5F7FA; transition: background 0.15s; }
-  .task-item:last-child { border-bottom: none; }
-  .task-item:hover { background: #FAFBFF; }
-  .task-item.done { opacity: 0.55; }
-  .task-item.done .task-name { text-decoration: line-through; color: #888; }
+/* ── FILTER ROW ── */
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.filter-lbl{font-size:11px;font-weight:600;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px}
+.fchip{padding:4px 12px;border-radius:999px;border:1.5px solid var(--border);font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:var(--muted);transition:all .15s}
+.fchip:hover{border-color:var(--blue);color:var(--blue)}
+.fchip.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.reset-btn{margin-left:auto;padding:5px 14px;border-radius:6px;border:1.5px solid var(--red);color:var(--red);font-size:11px;font-weight:600;cursor:pointer;background:#fff;font-family:'DM Mono',monospace}
+.reset-btn:hover{background:var(--red-lt)}
 
-  .task-check { width: 18px; height: 18px; border: 2px solid #1E56B0; border-radius: 4px; cursor: pointer; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-  .task-check.checked { background: #1E56B0; border-color: #1E56B0; }
-  .task-check.checked::after { content: '✓'; color: #fff; font-size: 11px; font-weight: 700; }
+/* ── PHASE PANEL ── */
+.panel{display:none}
+.panel.active{display:block}
 
-  .task-content { flex: 1; min-width: 0; }
-  .task-name { font-size: 13px; font-weight: 600; color: #111; line-height: 1.4; }
-  .task-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; align-items: center; }
-  .tag { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
-  .tag-dev { background: #EAF1FB; color: #1E56B0; }
-  .tag-branch { background: #F0FAF4; color: #1A7A4A; font-family: monospace; font-size: 10px; }
-  .tag-blocks { background: #FDF0F0; color: #C0392B; }
-  .tag-dep { background: #FFF8E1; color: #8B4513; }
-  .task-dep { font-size: 11px; color: #888; margin-top: 3px; }
+/* ── PHASE NOTE ── */
+.phase-note{padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.pn-blue{background:var(--blue-lt);border-left:4px solid var(--blue);color:var(--blue-dk)}
+.pn-red{background:var(--red-lt);border-left:4px solid var(--red);color:var(--red)}
+.pn-green{background:var(--green-lt);border-left:4px solid var(--green);color:var(--green)}
+.pn-purple{background:var(--purple-lt);border-left:4px solid var(--purple);color:var(--purple)}
+.pn-amber{background:var(--amber-lt);border-left:4px solid var(--amber);color:var(--amber)}
 
-  /* Dependency map */
-  .dep-map { margin-bottom: 24px; }
-  .dep-map h3 { font-size: 14px; font-weight: 700; color: #1E56B0; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #1E56B0; }
-  .dep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
-  .dep-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 14px; border-left: 4px solid #1E56B0; }
-  .dep-card .module { font-size: 13px; font-weight: 700; color: #111; }
-  .dep-card .dep-needs { font-size: 11px; color: #888; margin-top: 4px; }
-  .dep-card .dep-needs strong { color: #C0392B; }
+/* ── MONTH CARD ── */
+.month-card{background:var(--card);border-radius:12px;border:1px solid var(--border);margin-bottom:18px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.mhdr{padding:13px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;gap:12px}
+.mhdr.c-blue{background:var(--blue)}
+.mhdr.c-red{background:var(--red)}
+.mhdr.c-green{background:var(--green)}
+.mhdr.c-purple{background:var(--purple)}
+.mhdr.c-amber{background:var(--amber)}
+.mhdr-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff}
+.mhdr-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:2px}
+.mhdr-right{display:flex;align-items:center;gap:10px}
+.mprog{font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);font-weight:600}
+.mtoggle{color:#fff;font-size:16px;transition:transform .22s}
+.mhdr.collapsed .mtoggle{transform:rotate(-90deg)}
 
-  /* Stats bar */
-  .stats-bar { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
-  .stat-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 20px; flex: 1; min-width: 140px; text-align: center; }
-  .stat-num { font-size: 28px; font-weight: 700; color: #1E56B0; line-height: 1; }
-  .stat-label { font-size: 12px; color: #888; margin-top: 4px; }
+/* ── WEEK SECTION ── */
+.week-sec{border-bottom:1px solid #F0F4F8}
+.week-sec:last-child{border-bottom:none}
+.whdr{padding:9px 20px;display:flex;align-items:center;gap:8px}
+.whdr.wc-blue{background:#EAF1FB}
+.whdr.wc-red{background:#FDF0F0}
+.whdr.wc-green{background:#F0FAF4}
+.whdr.wc-purple{background:#F5EEF8}
+.whdr.wc-amber{background:var(--amber-lt)}
+.wlabel{font-family:'Syne',sans-serif;font-size:12px;font-weight:700}
+.wc-blue .wlabel{color:var(--blue)}
+.wc-red .wlabel{color:var(--red)}
+.wc-green .wlabel{color:var(--green)}
+.wc-purple .wlabel{color:var(--purple)}
+.wc-amber .wlabel{color:var(--amber)}
+.wdates{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)}
+.wfocus{font-size:11px;color:var(--muted);font-style:italic;margin-left:auto}
 
-  /* Filter */
-  .filter-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
-  .filter-label { font-size: 12px; color: #888; font-weight: 600; }
-  .dev-filter { padding: 5px 12px; border-radius: 999px; border: 1.5px solid #ccc; font-size: 12px; font-weight: 600; cursor: pointer; background: #fff; color: #555; transition: all 0.2s; }
-  .dev-filter.active { background: #1E56B0; border-color: #1E56B0; color: #fff; }
+/* ── TASK ITEM ── */
+.task-list{padding:2px 0}
+.task-item{display:flex;align-items:flex-start;gap:12px;padding:10px 20px;border-bottom:1px solid #F8FAFB;transition:background .12s}
+.task-item:last-child{border-bottom:none}
+.task-item:hover{background:#FAFBFF}
+.task-item.done{opacity:.5}
+.task-item.done .tname{text-decoration:line-through;color:var(--muted)}
+.chk{width:17px;height:17px;border-radius:4px;border:2px solid;flex-shrink:0;margin-top:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .13s}
+.chk.c-blue{border-color:var(--blue)}
+.chk.c-blue.on{background:var(--blue);border-color:var(--blue)}
+.chk.c-red{border-color:var(--red)}
+.chk.c-red.on{background:var(--red);border-color:var(--red)}
+.chk.c-green{border-color:var(--green)}
+.chk.c-green.on{background:var(--green);border-color:var(--green)}
+.chk.c-purple{border-color:var(--purple)}
+.chk.c-purple.on{background:var(--purple);border-color:var(--purple)}
+.chk.c-amber{border-color:var(--amber)}
+.chk.c-amber.on{background:var(--amber);border-color:var(--amber)}
+.chk.on::after{content:'✓';color:#fff;font-size:10px;font-weight:800;line-height:1}
+.tcontent{flex:1;min-width:0}
+.tname{font-size:13px;font-weight:500;color:var(--text);line-height:1.45}
+.tmeta{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;font-family:'DM Mono',monospace}
+.tag-dev-blue{background:var(--blue-lt);color:var(--blue)}
+.tag-dev-red{background:var(--red-lt);color:var(--red)}
+.tag-dev-green{background:var(--green-lt);color:var(--green)}
+.tag-dev-purple{background:var(--purple-lt);color:var(--purple)}
+.tag-dev-amber{background:var(--amber-lt);color:var(--amber)}
+.tag-branch{background:#F0FAF4;color:#1A7A4A;font-size:9.5px}
+.tag-dep{background:var(--gold-lt);color:#7A5500}
 
-  /* Hidden */
-  .phase-panel { display: none; }
-  .phase-panel.active { display: block; }
+/* ── DEP MAP ── */
+.dep-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px}
+.dep-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 15px;border-left:4px solid var(--blue)}
+.dep-card .dmod{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text)}
+.dep-card .dneeds{font-size:11px;color:var(--muted);margin-top:4px}
+.dep-card .dneeds strong{color:var(--red)}
+.dep-card .dwhy{font-size:11px;color:#888;margin-top:3px}
 
-  .reset-btn { padding: 7px 16px; border-radius: 8px; border: 1.5px solid #C0392B; color: #C0392B; font-size: 12px; font-weight: 600; cursor: pointer; background: #fff; margin-left: auto; }
-  .reset-btn:hover { background: #FDF0F0; }
-
-  @media (max-width: 600px) {
-    .site-header { padding: 16px; }
-    .main { padding: 16px 12px 48px; }
-    .progress-bar { width: 120px; }
-    .week-focus { display: none; }
-  }
+/* ── RESPONSIVE ── */
+@media(max-width:640px){
+  .hdr{padding:0 16px}
+  .main{padding:16px 12px 60px}
+  .prog-bar{width:110px}
+  .wfocus,.stat-pills{display:none}
+  .tabs-wrap{gap:4px}
+  .tab{font-size:11px;padding:6px 10px}
+}
 </style>
 </head>
 <body>
 
-<header class="site-header">
-  <div>
-    <h1>SNAFRATE — Sprint Build Checklist</h1>
-    <div class="sub">March → September 2026  ·  Plain PHP MVC  ·  Royal Blue #1E56B0  ·  Inter font</div>
+<header class="hdr">
+  <div class="hdr-left">
+    <h1>SNAFRATE — Full Build Checklist</h1>
+    <div class="hdr-sub">Mar 16, 2026 → Mar 2027 &nbsp;·&nbsp; Frank (Lead + FE1 + Security) · FE2 · BE1 · BE2 · BE3 · Mobile</div>
   </div>
-  <div class="progress-wrap">
-    <div class="progress-bar"><div class="progress-fill" id="globalBar" style="width:0%"></div></div>
-    <span class="progress-label" id="globalLabel">0 / 0 done</span>
+  <div class="hdr-right">
+    <div class="stat-pills">
+      <div class="pill pill-total">Total <span id="sTotal">0</span></div>
+      <div class="pill pill-done">Done <span id="sDone">0</span></div>
+      <div class="pill pill-left">Left <span id="sLeft">0</span></div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-bar"><div class="prog-fill" id="gBar" style="width:0%"></div></div>
+      <span class="prog-lbl" id="gLbl">0 / 0</span>
+    </div>
   </div>
 </header>
 
 <main class="main">
 
-  <!-- Stats -->
-  <div class="stats-bar">
-    <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total Tasks</div></div>
-    <div class="stat-card"><div class="stat-num" id="statDone">0</div><div class="stat-label">Completed</div></div>
-    <div class="stat-card"><div class="stat-num" id="statLeft">0</div><div class="stat-label">Remaining</div></div>
-    <div class="stat-card"><div class="stat-num" id="statPct">0%</div><div class="stat-label">Progress</div></div>
+  <div class="tabs-wrap">
+    <button class="tab t-build active" onclick="showTab(0,this)">① Mar 16–31</button>
+    <button class="tab t-build"        onclick="showTab(1,this)">② Apr–May</button>
+    <button class="tab t-build"        onclick="showTab(2,this)">③ Jun–Jul</button>
+    <button class="tab t-sec"          onclick="showTab(3,this)">🔒 Security</button>
+    <button class="tab t-build"        onclick="showTab(4,this)">④ Aug–Sep Launch</button>
+    <button class="tab t-mkt"          onclick="showTab(5,this)">📣 Marketing</button>
+    <button class="tab t-reg"          onclick="showTab(6,this)">📋 Registration</button>
+    <button class="tab t-post"         onclick="showTab(7,this)">🚀 Post-Launch</button>
+    <button class="tab t-dep"          onclick="showTab(8,this)">📦 Dep Map</button>
   </div>
 
-  <!-- Phase tabs -->
-  <div class="phase-tabs">
-    <button class="phase-tab active" onclick="showPhase(0)">Phase 1 — March</button>
-    <button class="phase-tab" onclick="showPhase(1)">Phase 2 — Apr–May</button>
-    <button class="phase-tab" onclick="showPhase(2)">Phase 3 — Jun–Jul</button>
-    <button class="phase-tab" onclick="showPhase(3)">Phase 4 — Aug–Sep</button>
-    <button class="phase-tab" onclick="showPhase(4)">📦 Dependency Map</button>
-  </div>
-
-  <!-- Filter row -->
   <div class="filter-row" id="filterRow">
-    <span class="filter-label">Filter by dev:</span>
-    <button class="dev-filter active" onclick="setFilter('all')">All</button>
-    <button class="dev-filter" onclick="setFilter('Lead')">Lead</button>
-    <button class="dev-filter" onclick="setFilter('BE1')">BE1</button>
-    <button class="dev-filter" onclick="setFilter('BE2')">BE2</button>
-    <button class="dev-filter" onclick="setFilter('BE3')">BE3</button>
-    <button class="dev-filter" onclick="setFilter('FE1')">FE1</button>
-    <button class="dev-filter" onclick="setFilter('FE2')">FE2</button>
-    <button class="dev-filter" onclick="setFilter('Frank')">Frank</button>
-    <button class="reset-btn" onclick="resetAll()">Reset All</button>
+    <span class="filter-lbl">Filter:</span>
+    <button class="fchip active" onclick="setFilter('all',this)">All</button>
+    <button class="fchip" onclick="setFilter('Frank',this)">Frank</button>
+    <button class="fchip" onclick="setFilter('BE1',this)">BE1</button>
+    <button class="fchip" onclick="setFilter('BE2',this)">BE2</button>
+    <button class="fchip" onclick="setFilter('BE3',this)">BE3</button>
+    <button class="fchip" onclick="setFilter('FE2',this)">FE2</button>
+    <button class="fchip" onclick="setFilter('Mobile',this)">Mobile</button>
+    <button class="fchip" onclick="setFilter('All',this)">All Devs</button>
+    <button class="reset-btn" onclick="resetAll()">↺ Reset All</button>
   </div>
 
-  <div id="phase-panels"></div>
+  <div id="panels"></div>
 </main>
 
 <script>
-const PHASES = [
-  {
-    name: "Phase 1 — March 2026",
-    theme: "Foundation: Architecture, Standards, Auth, Supplier Onboarding",
-    months: [{
-      name: "March 2026",
-      trial: "Trial begins",
-      weeks: [
-        { label: "Week 1", dates: "Mar 1–7", focus: "Architecture, DB migrations, CSS foundation",
-          tasks: [
-            { dev:"Lead",  name:"Define PHP MVC folder structure + document in README", branch:"chore/mvc-structure", dep:"Nothing — start here" },
-            { dev:"Lead",  name:"Set up CI/CD — PHP syntax check on every push to dev branch", branch:"chore/ci-setup", dep:"Nothing" },
-            { dev:"Lead",  name:"Document Git workflow in CONTRIBUTING.md (branch naming, PR process)", branch:"chore/git-workflow", dep:"Nothing" },
-            { dev:"BE1",   name:"Write ALL DB migrations — every table from the schema document (18 tables)", branch:"chore/db-migrations", dep:"MVC folder structure confirmed" },
-            { dev:"BE2",   name:"Set up PHP router — maps URLs to controllers, supports all HTTP methods", branch:"chore/php-router", dep:"MVC folder structure" },
-            { dev:"BE3",   name:"Request/response helpers — JSON wrapper, input validation class, error handler", branch:"chore/request-helpers", dep:"PHP router" },
-            { dev:"FE1",   name:"Create tokens.css — all color variables (#1E56B0, #F4A300 etc.) + Inter @font-face (self-hosted)", branch:"chore/tokens-css", dep:"Nothing — design handoff available" },
-            { dev:"FE2",   name:"Base layout shell — nav bar desktop + mobile bottom nav, page wrapper, grid", branch:"chore/base-layout", dep:"tokens.css merged" },
-            { dev:"Mobile",name:"Read all 4 project documents and produce mobile requirements list", branch:"—", dep:"Nothing" },
-          ]},
-        { label: "Week 2", dates: "Mar 8–14", focus: "Authentication backend + screens begin",
-          tasks: [
-            { dev:"BE1", name:"POST /api/auth/register — validate, hash password, create user, send welcome email", branch:"feature/auth-registration", dep:"DB migrations merged" },
-            { dev:"BE1", name:"POST /api/auth/login — validate credentials, return JWT token", branch:"feature/auth-login", dep:"auth-registration merged" },
-            { dev:"BE1", name:"POST /api/auth/logout — invalidate token", branch:"feature/auth-logout", dep:"auth-login merged" },
-            { dev:"BE1", name:"SMTP mail setup — PHP mailer configured, welcome email template live", branch:"feature/auth-smtp", dep:"auth-registration merged" },
-            { dev:"BE2", name:"Role middleware — check role on protected routes, return 401/403 appropriately", branch:"feature/auth-middleware", dep:"auth-login merged" },
-            { dev:"FE1", name:"Register screen — client-side validation, connected to POST /api/auth/register", branch:"feature/auth-register-screen", dep:"tokens.css, base-layout, design approved by Frank" },
-            { dev:"FE1", name:"Login screen — connected to POST /api/auth/login, stores token, Google OAuth button hidden on Ghana IP", branch:"feature/auth-login-screen", dep:"auth-register-screen merged" },
-            { dev:"Frank",name:"Refine OTP Entry screen in Stitch/Visly and approve for FE1", branch:"—", dep:"Nothing" },
-          ]},
-        { label: "Week 3", dates: "Mar 15–21", focus: "Auth completion + supplier onboarding backend",
-          tasks: [
-            { dev:"BE1", name:"POST /api/auth/forgot-password — generate OTP, store hash, send to email", branch:"feature/auth-forgot-password", dep:"SMTP setup merged" },
-            { dev:"BE1", name:"POST /api/auth/reset-password — validate OTP, update password, invalidate OTP", branch:"feature/auth-reset-password", dep:"auth-forgot-password merged" },
-            { dev:"BE2", name:"Supplier registration — POST /api/supplier/register, document upload, account type (Individual/Company)", branch:"feature/supplier-register", dep:"auth-middleware, DB migrations" },
-            { dev:"BE2", name:"Admin approval API — GET pending list, POST approve, POST reject with reason + email notification", branch:"feature/supplier-approval-api", dep:"supplier-register merged" },
-            { dev:"FE1", name:"OTP Entry + Reset Password screens — auto-submit on 6th digit, connected to APIs", branch:"feature/auth-otp-screen", dep:"auth-forgot/reset APIs, design approved" },
-            { dev:"FE2", name:"Supplier registration screen — account type selector, document upload, submit confirmation", branch:"feature/supplier-register-screen", dep:"supplier-register API, design approved by Frank" },
-            { dev:"Frank",name:"Design and approve: Supplier Product Upload screen + Cart screen", branch:"—", dep:"Nothing" },
-          ]},
-        { label: "Week 4", dates: "Mar 22–31", focus: "Admin approval UI + Phase 1 exit tests",
-          tasks: [
-            { dev:"FE2",   name:"Admin supplier approval UI — pending list, view documents, approve/reject inline", branch:"feature/supplier-approval-ui", dep:"supplier-approval-api, base-layout" },
-            { dev:"BE3",   name:"Seed categories table — all categories from PRD with slugs and commission rates", branch:"chore/categories-seed", dep:"DB migrations" },
-            { dev:"Lead",  name:"Phase 1 internal review — test all endpoints on staging, compile bug list", branch:"—", dep:"All Phase 1 features merged to dev" },
-            { dev:"All",   name:"Fix all critical and high Phase 1 bugs from review", branch:"fix/*", dep:"Review complete" },
-            { dev:"Frank", name:"Approve remaining Phase 1 screens: OTP, Reset Password, Supplier Register, Admin Approval", branch:"—", dep:"Nothing" },
-          ]},
-      ]
-    }]
-  },
-  {
-    name: "Phase 2 — April–May 2026",
-    theme: "Core Build: Marketplace, Imports, Orders, Wallet, Chat  ·  Trial ends May 31",
-    months: [
-      { name: "April 2026", trial: "Trial month 2", weeks: [
-        { label: "Week 5", dates: "Apr 1–7", focus: "Product CRUD backend + category filtering",
-          tasks: [
-            { dev:"BE2", name:"POST /api/supplier/products — create with images, price, category, MOQ, source_type", branch:"feature/product-create", dep:"supplier-approval, categories-seed" },
-            { dev:"BE2", name:"GET /api/products — list with filters: category, source_type, price, moq, search, page", branch:"feature/product-list-api", dep:"product-create merged" },
-            { dev:"BE2", name:"GET /api/products/{id} — product detail + supplier's other products", branch:"feature/product-detail-api", dep:"product-list-api merged" },
-            { dev:"BE2", name:"PUT + DELETE /api/supplier/products/{id} — edit and delete own product only (403 on others)", branch:"feature/product-edit-delete", dep:"product-create merged" },
-            { dev:"BE3", name:"Auto-hide logic — product hidden when stock=0 or expires_at is past", branch:"feature/product-auto-hide", dep:"product-create merged" },
-            { dev:"FE2", name:"Product listing page — grid, source filter chips, category sidebar, price filter, search bar", branch:"feature/product-listing-ui", dep:"product-list-api, design approved" },
-            { dev:"FE2", name:"Product detail page — images, description, price, MOQ, supplier info, more from supplier below", branch:"feature/product-detail-ui", dep:"product-detail-api, design approved" },
-          ]},
-        { label: "Week 6", dates: "Apr 8–14", focus: "Supplier upload UI + import request backend",
-          tasks: [
-            { dev:"FE1", name:"Supplier product upload screen — name, price, category dropdown, MOQ, images, source_type toggle", branch:"feature/product-upload-ui", dep:"product-create API, design approved" },
-            { dev:"BE2", name:"POST /api/import-requests — 6-field form, preferred supplier, status=pending, notifications", branch:"feature/import-request-create", dep:"auth-middleware, supplier-approval" },
-            { dev:"BE2", name:"POST /api/import-requests/{id}/respond — quote, timeline, shipping, customs, pricing transparency", branch:"feature/import-request-respond", dep:"import-request-create merged" },
-            { dev:"BE2", name:"POST /api/import-requests/{id}/confirm — customer accepts, triggers escrow hold", branch:"feature/import-request-confirm", dep:"import-request-respond, wallet stub OK" },
-            { dev:"BE2", name:"PATCH /api/import-requests/{id}/status — processing, shipped (tracking), delivered", branch:"feature/import-request-status", dep:"import-request-confirm merged" },
-            { dev:"FE2", name:"Import request form UI — 6 fields, image upload, preferred supplier selector", branch:"feature/import-request-form-ui", dep:"import-request-create API, design approved" },
-            { dev:"BE1", name:"Wishlist API — POST/DELETE /api/wishlist/{productId}, GET /api/wishlist", branch:"feature/wishlist-api", dep:"product-create merged" },
-          ]},
-        { label: "Week 7", dates: "Apr 15–21", focus: "Import transparency UI + follow system + wishlist",
-          tasks: [
-            { dev:"FE2", name:"Import request detail — quote + full transparency display: arrival window, shipping, customs, price breakdown, Confirm button", branch:"feature/import-detail-ui", dep:"import-request-respond API, design approved" },
-            { dev:"FE1", name:"Supplier follow — Follow/Unfollow button on store cards and product pages, persists on refresh", branch:"feature/follow-supplier", dep:"supplier-approval API" },
-            { dev:"FE2", name:"Wishlist UI — heart icon on cards and detail page, wishlist page in customer dashboard", branch:"feature/wishlist-ui", dep:"wishlist-api, design approved" },
-            { dev:"FE1", name:"Supplier dashboard — products tab: list, edit, delete own products", branch:"feature/supplier-products-dashboard", dep:"product-edit-delete API, design approved" },
-            { dev:"BE2", name:"GET /api/suppliers/{id} — public profile: store info, product count, Trust Score placeholder (0)", branch:"feature/supplier-profile-api", dep:"supplier-approval merged" },
-            { dev:"Frank",name:"Approve: Cart screen, Order Tracking screen, Wallet/Deposit screen (all 3 needed before Week 8)", branch:"—", dep:"Nothing" },
-          ]},
-        { label: "Week 8", dates: "Apr 22–30", focus: "Cart system + order placement + wallet API",
-          tasks: [
-            { dev:"BE3", name:"Cart API — GET, POST add, PUT update qty, DELETE remove item. Cart persists for logged-in users.", branch:"feature/cart-api", dep:"product-list-api, auth-middleware" },
-            { dev:"FE2", name:"Cart screen — item list, quantity steppers (min 1), remove with confirm, subtotal, checkout", branch:"feature/cart-ui", dep:"cart-api, design approved" },
-            { dev:"BE3", name:"POST /api/orders — place from cart, create order + order_items, clear cart, send confirmation email", branch:"feature/order-place-api", dep:"cart-api, auth-middleware" },
-            { dev:"FE1", name:"Order confirmation screen — order ID, item summary, Track Order CTA", branch:"feature/order-confirm-ui", dep:"order-place-api merged" },
-            { dev:"BE1", name:"Wallet API — GET balance + history, POST /api/wallet/deposit/paystack (returns payment URL)", branch:"feature/wallet-api", dep:"auth-middleware, DB migrations (wallets table)" },
-          ]},
-      ]},
-      { name: "May 2026", trial: "Trial ends May 31", weeks: [
-        { label: "Week 9", dates: "May 1–7", focus: "Order tracking + Paystack/Stripe webhooks + wallet UI",
-          tasks: [
-            { dev:"BE3", name:"PATCH /api/orders/{id}/status — supplier sets processing, shipped (+ tracking number), delivered", branch:"feature/order-status-api", dep:"order-place-api merged" },
-            { dev:"BE3", name:"POST /api/orders/{id}/confirm-delivery — customer confirms, triggers escrow release", branch:"feature/order-confirm-delivery", dep:"order-status-api, escrow" },
-            { dev:"FE1", name:"Order tracking UI — step timeline (Pending→Processing→Shipped→Delivered), tracking number, Confirm Delivery button", branch:"feature/order-tracking-ui", dep:"order-status-api, design approved" },
-            { dev:"BE1", name:"POST /api/webhooks/paystack — validate signature, update wallet balance on success", branch:"feature/paystack-webhook", dep:"wallet-api merged" },
-            { dev:"BE1", name:"POST /api/wallet/deposit/stripe + POST /api/webhooks/stripe — Stripe payment intent + webhook", branch:"feature/stripe-webhook", dep:"wallet-api merged" },
-            { dev:"FE2", name:"Wallet screen — GHS balance, total spent, transaction history, Paystack + Stripe deposit buttons", branch:"feature/wallet-ui", dep:"wallet-api + webhooks, design approved" },
-          ]},
-        { label: "Week 10", dates: "May 8–14", focus: "Escrow system + order management + order list APIs",
-          tasks: [
-            { dev:"BE3", name:"Escrow — hold on order confirm, release on delivery confirm, link to disputes. Wallet deducted at order only.", branch:"feature/escrow-system", dep:"order-place-api, wallet-api" },
-            { dev:"BE3", name:"GET /api/orders (customer) + GET /api/supplier/orders (supplier) with ?status= filter", branch:"feature/orders-list-api", dep:"order-place-api merged" },
-            { dev:"FE2", name:"Customer orders page — list with status chips (color-coded), link to tracking detail", branch:"feature/customer-orders-ui", dep:"orders-list-api, design approved" },
-            { dev:"FE1", name:"Supplier orders page — incoming orders, accept/reject, update status, add tracking number", branch:"feature/supplier-orders-ui", dep:"order-status-api, design approved" },
-            { dev:"BE1", name:"Order confirmation email + order status change email templates (shipped notification)", branch:"feature/order-emails", dep:"SMTP setup, order-place-api" },
-          ]},
-        { label: "Week 11", dates: "May 15–21", focus: "Chat system — general (24hr expiry) and order-linked (persistent)",
-          tasks: [
-            { dev:"BE1", name:"Chat API — POST initiate (customer only), GET list, GET messages. Expiry enforced per chat type.", branch:"feature/chat-api", dep:"auth-middleware, supplier-approval" },
-            { dev:"BE1", name:"POST /api/chats/{id}/messages — send text + optional media. expires_at set for general, NULL for order-linked.", branch:"feature/chat-send-message", dep:"chat-api merged" },
-            { dev:"BE1", name:"PUT /api/chats/{id}/messages/{id} (edit within 3 min only) + PATCH star/unstar message", branch:"feature/chat-edit-star", dep:"chat-send-message merged" },
-            { dev:"BE1", name:"POST /api/chats/{id}/rate — customer rates supplier 1–5 after chat closes", branch:"feature/chat-rating", dep:"chat-api merged" },
-            { dev:"FE1", name:"Chat UI — bubbles, send input, media upload, star/edit context menu, expiry placeholder, order-linked badge", branch:"feature/chat-ui", dep:"chat-api + all chat endpoints, design approved" },
-            { dev:"BE1", name:"In-app notification — notification record created on new chat message, bell badge count", branch:"feature/chat-notification", dep:"chat-api merged" },
-          ]},
-        { label: "Week 12", dates: "May 22–31", focus: "Integration, dashboards, trial evaluation",
-          tasks: [
-            { dev:"BE2", name:"Import request auto-creates persistent order-linked chat thread between buyer and supplier/admin", branch:"feature/import-chat-link", dep:"import-request-create, chat-api" },
-            { dev:"FE2", name:"Customer dashboard — active orders, in-transit, recent orders, followed suppliers, wallet balance widget", branch:"feature/customer-dashboard-ui", dep:"orders-list-api, wallet-api, follow-supplier, design approved" },
-            { dev:"FE1", name:"Notification bell — unread count badge, dropdown list, mark as read, navigate to source", branch:"feature/notifications-ui", dep:"chat-notification, order-emails" },
-            { dev:"Lead", name:"Full Phase 2 integration test on staging — end-to-end user journey with real data", branch:"—", dep:"All Phase 2 features merged" },
-            { dev:"All",  name:"Fix all critical + high bugs from integration test before May 31", branch:"fix/*", dep:"Integration test complete" },
-            { dev:"Frank",name:"Trial evaluation — review Phase 1 + 2 deliverables. Team contract decision.", branch:"—", dep:"Integration test passed" },
-          ]},
-      ]},
-    ]
-  },
-  {
-    name: "Phase 3 — June–July 2026",
-    theme: "Intelligence Layer: Shorts, Trust Score, Capital Loop, Admin Panel",
-    months: [
-      { name: "June 2026", trial: "Post-trial", weeks: [
-        { label: "Week 13", dates: "Jun 1–7", focus: "Shorts upload backend + feed API",
-          tasks: [
-            { dev:"BE2", name:"POST /api/supplier/shorts — upload video linked to product, store on S3-compatible storage", branch:"feature/shorts-upload-api", dep:"product-create, supplier-approval" },
-            { dev:"BE2", name:"GET /api/shorts — paginated feed, followed suppliers prioritized for auth users", branch:"feature/shorts-feed-api", dep:"shorts-upload-api, follow-supplier" },
-            { dev:"BE2", name:"POST /api/shorts/{id}/view — increment view_count (debounced per IP)", branch:"feature/shorts-view-count", dep:"shorts-feed-api merged" },
-            { dev:"BE2", name:"DELETE /api/supplier/shorts/{id} (own only) + GET /api/supplier/shorts/{id}/stats", branch:"feature/shorts-manage-api", dep:"shorts-upload-api merged" },
-            { dev:"FE1", name:"Shorts upload UI in supplier dashboard — video picker, linked product selector, title, thumbnail", branch:"feature/shorts-upload-ui", dep:"shorts-upload-api, design approved" },
-            { dev:"Frank",name:"Design and approve: Shorts Feed screen + Supplier Profile/Store Page", branch:"—", dep:"Nothing" },
-          ]},
-        { label: "Week 14", dates: "Jun 8–14", focus: "Shorts feed frontend + supplier profile + Trust Score engine",
-          tasks: [
-            { dev:"FE1", name:"Shorts feed — vertical scroll, snap-to-short, autoplay muted, tap mute/unmute, product overlay, follow inline", branch:"feature/shorts-feed-ui", dep:"shorts-feed-api, follow-supplier, design approved" },
-            { dev:"FE1", name:"Supplier profile page — store info, Trust Score stars (placeholder until engine live), badges, product grid, follow", branch:"feature/supplier-profile-ui", dep:"supplier-profile-api, design approved" },
-            { dev:"FE1", name:"Shorts management in supplier dashboard — list own shorts, view counts, delete with confirm", branch:"feature/shorts-manage-ui", dep:"shorts-manage-api merged" },
-            { dev:"BE2", name:"Trust Score engine — composite score from: verification, orders, refund rate, communication rating, dispute outcomes, content reliability", branch:"feature/trust-score-engine", dep:"orders-list-api, chat-rating — disputes stub acceptable" },
-            { dev:"BE2", name:"Trust Score event logging — write to trust_score_events on every score-changing action", branch:"feature/trust-score-events", dep:"trust-score-engine merged" },
-          ]},
-        { label: "Week 15", dates: "Jun 15–21", focus: "Trust Score display + badges + dispute system",
-          tasks: [
-            { dev:"FE1", name:"Trust Score display on supplier profile — star rating, Verified Import Partner, Top China Supplier, Fast Responder, Clear Communicator badges (gold #F4A300 styling)", branch:"feature/trust-score-ui", dep:"trust-score-engine, supplier-profile-ui" },
-            { dev:"BE2", name:"Badge auto-award — Fast Responder (median response < threshold), Clear Communicator (avg rating > threshold)", branch:"feature/supplier-badges", dep:"trust-score-engine, chat-rating" },
-            { dev:"BE2", name:"Platform-Backed Supplier badge — awarded when Trust Score exceeds configured threshold", branch:"feature/platform-backed-badge", dep:"trust-score-engine merged" },
-            { dev:"BE3", name:"Dispute API — POST raise, GET detail, POST supplier response, POST admin ruling, escrow release per ruling, outcome → trust_score_events", branch:"feature/dispute-api", dep:"escrow-system, orders-list-api, auth-middleware" },
-            { dev:"FE2", name:"Dispute UI — customer raises dispute (reason + evidence upload), supplier response, admin ruling view", branch:"feature/dispute-ui", dep:"dispute-api, design approved by Frank" },
-          ]},
-        { label: "Week 16", dates: "Jun 22–30", focus: "Capital Loop engine + flash sales",
-          tasks: [
-            { dev:"BE2", name:"Capital Loop credit engine — credits from Shorts views, low refund rate, fast responses. Tiers from config. Auto-upgrade on threshold.", branch:"feature/capital-loop-engine", dep:"trust-score-engine, shorts-view-count, chat-rating" },
-            { dev:"BE2", name:"Capital Loop benefits engine — payout speed, fee discount, import limit, badge applied per tier automatically", branch:"feature/capital-loop-benefits", dep:"capital-loop-engine merged" },
-            { dev:"FE1", name:"Capital Loop dashboard — credits balance, tier name, active benefits, progress to next tier. Gold (#F4A300) on tier badges.", branch:"feature/capital-loop-ui", dep:"capital-loop-engine, design approved" },
-            { dev:"BE3", name:"Flash sale API — POST create, auto-activate/deactivate by timestamps, GET active sale", branch:"feature/flash-sale-api", dep:"auth-middleware (admin role)" },
-          ]},
-      ]},
-      { name: "July 2026", trial: "Post-trial", weeks: [
-        { label: "Week 17", dates: "Jul 1–7", focus: "Admin dashboard + content moderation + chat monitoring",
-          tasks: [
-            { dev:"BE3", name:"Admin stats API — total users, orders, revenue with daily/weekly/monthly filters", branch:"feature/admin-stats-api", dep:"orders-list-api, auth-middleware (admin)" },
-            { dev:"FE2", name:"Admin dashboard overview — stats cards, period filter, supplier queue widget", branch:"feature/admin-dashboard-ui", dep:"admin-stats-api, supplier-approval-api, design approved" },
-            { dev:"BE3", name:"Content moderation API — GET flagged queue, DELETE short or product", branch:"feature/content-moderation-api", dep:"shorts-upload-api, product-create, auth-middleware (admin)" },
-            { dev:"FE2", name:"Admin content moderation UI — flagged Shorts and products, preview, remove button", branch:"feature/content-moderation-ui", dep:"content-moderation-api, design approved" },
-            { dev:"BE3", name:"Chat keyword monitoring — scan for prohibited keywords, surface flagged chats to admin queue", branch:"feature/chat-monitoring", dep:"chat-api merged" },
-          ]},
-        { label: "Week 18", dates: "Jul 8–14", focus: "Admin flash sales + supplier payout system",
-          tasks: [
-            { dev:"FE2", name:"Admin flash sale UI — create form, active sale banner platform-wide with countdown", branch:"feature/flash-sale-ui", dep:"flash-sale-api, design approved" },
-            { dev:"BE1", name:"Supplier payout — Paystack/Flutterwave local, Stripe international. Payout speed modified by Capital Loop tier.", branch:"feature/supplier-payout", dep:"escrow-system, capital-loop-benefits, supplier-approval" },
-            { dev:"FE1", name:"Admin supplier management — full list, filter by status, approve/reject/suspend inline", branch:"feature/admin-supplier-ui", dep:"supplier-approval-api, design approved" },
-            { dev:"FE2", name:"Admin chat monitoring UI — flagged chat list, full thread view, dismiss/escalate", branch:"feature/admin-chat-ui", dep:"chat-monitoring merged" },
-          ]},
-        { label: "Week 19–20", dates: "Jul 15–31", focus: "Phase 3 integration + mobile handoff prep + responsive audit",
-          tasks: [
-            { dev:"Lead",       name:"Full Phase 3 integration test — Shorts, Trust Score, Capital Loop, Admin panel end to end", branch:"—", dep:"All Phase 3 features merged" },
-            { dev:"All",        name:"Fix all critical + high Phase 3 bugs", branch:"fix/*", dep:"Integration test complete" },
-            { dev:"Mobile",     name:"Produce full mobile requirements document — screen-by-screen differences, push notifications, camera, file picker needs", branch:"—", dep:"All Phase 3 APIs complete" },
-            { dev:"FE1 + FE2",  name:"Responsive audit — every screen tested at 360px, 390px, 768px, 1280px. Zero broken layouts.", branch:"fix/responsive-*", dep:"Phase 3 complete" },
-            { dev:"BE1",        name:"Password change endpoint + account settings page", branch:"feature/account-settings", dep:"auth-login merged" },
-          ]},
-      ]},
-    ]
-  },
-  {
-    name: "Phase 4 — Aug–Sep 2026",
-    theme: "Launch Preparation: QA, Security, Beta, Production Deploy, Public Launch",
-    months: [
-      { name: "August 2026", trial: "Pre-launch", weeks: [
-        { label: "Week 21–22", dates: "Aug 1–14", focus: "Full QA regression + performance audit",
-          tasks: [
-            { dev:"FE1 + FE2",     name:"Test every customer-facing user flow against PRD v1.0. Zero critical/high bugs.", branch:"—", dep:"All features merged" },
-            { dev:"BE1+BE2+BE3",   name:"Test every supplier and admin flow against PRD v1.0", branch:"—", dep:"All features merged" },
-            { dev:"Lead",          name:"Performance audit — all pages under 2s on 3G. Images compressed (WebP). Videos lazy-loaded.", branch:"fix/perf-*", dep:"QA pass" },
-            { dev:"FE1 + FE2",     name:"Mobile audit — all screens at 360px, 390px, 414px, 768px. Minimum 44px tap targets.", branch:"fix/responsive-*", dep:"QA pass" },
-            { dev:"BE1",           name:"DB query optimization — indexes on filtered columns, no N+1 queries on order/chat endpoints", branch:"fix/db-perf", dep:"QA pass" },
-          ]},
-        { label: "Week 23", dates: "Aug 15–21", focus: "Security audit — OWASP Top 10",
-          tasks: [
-            { dev:"BE1+BE2+BE3", name:"SQL injection audit — all queries use parameterized statements. Zero raw string concatenation in SQL.", branch:"fix/security-sqli", dep:"All features complete" },
-            { dev:"BE1+BE2+BE3", name:"XSS audit — all user input escaped on output. No innerHTML with unescaped data.", branch:"fix/security-xss", dep:"All features complete" },
-            { dev:"BE1",         name:"CSRF protection — all state-changing forms and AJAX calls include CSRF tokens", branch:"fix/security-csrf", dep:"All features complete" },
-            { dev:"BE1",         name:"Auth audit — JWT expiry works, token invalidated on logout, no sensitive data in tokens", branch:"fix/security-auth", dep:"All features complete" },
-            { dev:"Lead",        name:"China accessibility audit — load full platform from China IP via VPN. Zero blocked resources.", branch:"fix/china-compat", dep:"All features complete" },
-          ]},
-        { label: "Week 24", dates: "Aug 22–31", focus: "Load testing + compliance + production server setup",
-          tasks: [
-            { dev:"BE1 + Lead", name:"Load testing — 200 concurrent users via k6 or JMeter. No 5xx errors. Sub-2s response times.", branch:"fix/load-*", dep:"Security audit complete" },
-            { dev:"Frank",      name:"Ghana Data Protection Act 2012 review — consent, storage, privacy policy page published", branch:"—", dep:"Nothing" },
-            { dev:"Frank",      name:"Wallet KYC/AML open item resolved — approach decided and implemented or explicitly scoped post-launch", branch:"—", dep:"Nothing" },
-            { dev:"Frank",      name:"Refund policy finalized and published on platform. Referenced in order emails.", branch:"—", dep:"Nothing" },
-            { dev:"Lead",       name:"Production server — Alibaba Cloud HK, SSL (A grade), 24hr DB backups, self-hosted Sentry, uptime monitoring", branch:"chore/production-setup", dep:"Nothing" },
-          ]},
-      ]},
-      { name: "September 2026", trial: "LAUNCH", weeks: [
-        { label: "Week 25–26", dates: "Sep 1–14", focus: "Closed beta with real users",
-          tasks: [
-            { dev:"Frank",  name:"Invite 20–50 real beta users — mix of buyers and at least 5–10 suppliers. Structured feedback form.", branch:"—", dep:"Production server ready" },
-            { dev:"All",    name:"Daily monitoring: error logs, user feedback, morning triage standup", branch:"—", dep:"Beta live" },
-            { dev:"All",    name:"Fix all critical + high bugs from beta before Week 27", branch:"fix/*", dep:"Beta feedback" },
-            { dev:"Frank",  name:"Onboard minimum 10 approved suppliers — each with 5+ products. At least 2 China Direct capable.", branch:"—", dep:"Supplier approval flow live" },
-            { dev:"Lead",   name:"Final deployment checklist — DNS, SSL, backups, monitoring, error tracking all confirmed live. Rollback plan documented.", branch:"—", dep:"Beta bugs fixed" },
-          ]},
-        { label: "Week 27–28", dates: "Sep 15–30", focus: "Public launch + post-launch monitoring",
-          tasks: [
-            { dev:"Lead",       name:"DNS switch to production — flip from staging to production server", branch:"—", dep:"Deployment checklist signed off" },
-            { dev:"Frank",      name:"Launch announced — email to beta users, platform notification", branch:"—", dep:"DNS live" },
-            { dev:"Lead + BE1", name:"48-hour post-launch standby — monitor errors every 2 hours. Hotfix deployed within 4 hours if critical.", branch:"—", dep:"Launch" },
-            { dev:"Lead",       name:"Week 1 post-launch review — error rates, drop-off points, supplier onboarding friction. Written report.", branch:"—", dep:"7 days post-launch" },
-          ]},
-      ]},
-    ]
-  },
-];
+// ─────────────────────────────────────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────────────────────────────────────
+const D = [
 
-const DEP_MAP = [
-  { mod: "DB Schema + Migrations", needs: "Nothing", why: "Absolute starting point — all other backend work depends on this" },
-  { mod: "CSS tokens + Inter font setup", needs: "Nothing", why: "FE devs cannot style anything until tokens exist" },
-  { mod: "Auth — Register + Login", needs: "DB Schema", why: "Every module that touches a user requires Auth first" },
-  { mod: "Role Middleware", needs: "Auth", why: "No protected route can be built before middleware exists" },
-  { mod: "Supplier Onboarding", needs: "Auth, Role Middleware", why: "Suppliers are users — Auth must work" },
-  { mod: "Product CRUD", needs: "Supplier Onboarding, DB Schema", why: "Products belong to approved suppliers" },
-  { mod: "Product Listing (Customer)", needs: "Product CRUD, Categories", why: "Can't display products until suppliers can create them" },
-  { mod: "Import Request Form", needs: "Auth, Product Listing", why: "Customer must be logged in; supplier system must exist" },
-  { mod: "Cart System", needs: "Product Listing, Auth", why: "Cart items are products; user must be authenticated" },
-  { mod: "Order Placement", needs: "Cart, Wallet", why: "Order triggers escrow hold which requires wallet" },
-  { mod: "Wallet + Paystack/Stripe", needs: "Auth, DB Schema (wallets table)", why: "Wallet must exist before any order can be confirmed" },
-  { mod: "Escrow", needs: "Wallet, Order Placement", why: "Escrow holds wallet funds linked to an order record" },
-  { mod: "Chat — General", needs: "Auth, Supplier Onboarding", why: "Both parties must exist as users" },
-  { mod: "Chat — Order-Linked", needs: "Chat General, Orders", why: "Order-linked chat is an extension of the chat system" },
-  { mod: "Shorts Upload", needs: "Supplier Onboarding, Product CRUD", why: "Shorts link to products and belong to suppliers" },
-  { mod: "Shorts Feed", needs: "Shorts Upload", why: "Can't display shorts before suppliers can create them" },
-  { mod: "Trust Score Engine", needs: "Orders, Chat Rating, Disputes, Shorts", why: "Score draws from multiple completed modules" },
-  { mod: "Capital Loop Engine", needs: "Trust Score, Shorts, Order completion", why: "Credits earned from performance across completed features" },
-  { mod: "Admin Panel", needs: "All core modules", why: "Admin manages users, products, orders, content — all must exist" },
-  { mod: "Dispute System", needs: "Orders, Escrow, Chat", why: "Disputes are raised on orders and linked to escrow holds" },
-];
+// ═══════════════════════════════════════════════════════════════════════
+// PHASE 1 — MAR 16–31
+// ═══════════════════════════════════════════════════════════════════════
+{ title:"Phase 1 — March 16–31, 2026", color:"blue",
+  note:{style:"pn-blue", text:"Trial begins Mar 16. Frank carries Lead + FE1 + Security from day one. Goal: working auth and supplier onboarding by Mar 31."},
+  months:[
+  { name:"March 2026 — Trial Begins", color:"blue",
+    weeks:[
+    { label:"Week 1", dates:"Mar 16–22", focus:"Architecture · DB · CSS · Rate limiting baseline", color:"blue",
+      tasks:[
+        {dev:"Frank",name:"PHP MVC folder structure documented in README. All devs confirm structure before writing code.",branch:"chore/mvc-structure",dep:"—"},
+        {dev:"Frank",name:"CI/CD — PHP syntax check + lint on every push to dev branch",branch:"chore/ci-setup",dep:"—"},
+        {dev:"Frank",name:"CONTRIBUTING.md — branch naming, PR process, review SLA, deploy process. All devs sign off.",branch:"chore/git-workflow",dep:"—"},
+        {dev:"Frank",name:"Rate limiting middleware — 5 req/min per IP on auth endpoints. 10 fails → 15-min lockout.",branch:"feature/sec-ratelimit",dep:"PHP router"},
+        {dev:"BE1",name:"Write ALL DB migrations — every table from schema doc (18+ tables). php migrate runs clean on fresh DB.",branch:"chore/db-migrations",dep:"MVC structure confirmed"},
+        {dev:"BE2",name:"PHP router — maps URLs to controllers. GET, POST, PUT, DELETE, PATCH supported.",branch:"chore/php-router",dep:"MVC structure"},
+        {dev:"BE3",name:"Request/response helpers — JSON wrapper, input validation class, global error handler",branch:"chore/request-helpers",dep:"PHP router"},
+        {dev:"FE2",name:"tokens.css — all CSS variables (#1E56B0, #F4A300, spacing, radius). Inter @font-face self-hosted. Zero external font requests.",branch:"chore/tokens-css",dep:"—"},
+        {dev:"Mobile",name:"Base layout shell — desktop navbar + 5-tab mobile bottom nav + page wrapper grid. No layout breaks at 360px.",branch:"chore/base-layout",dep:"tokens.css merged"},
+        {dev:"Mobile",name:"Read all project docs (PRD, Tech Plan, Design Handoff, Sprint Guide v2). Submit written mobile requirements list to Frank by end of Week 1.",branch:"—",dep:"—"},
+      ]},
+    { label:"Week 2", dates:"Mar 23–31", focus:"Auth · Brute force hardening · Supplier onboarding · Admin UI", color:"blue",
+      tasks:[
+        {dev:"BE1",name:"POST /api/auth/register — bcrypt cost 12, create user, send welcome email",branch:"feature/auth-register",dep:"DB migrations + helpers"},
+        {dev:"BE1",name:"POST /api/auth/login — validate credentials, return JWT (15-min access + 7-day refresh). Log every attempt: IP + timestamp + user agent.",branch:"feature/auth-login",dep:"auth-register merged"},
+        {dev:"BE1",name:"POST /api/auth/logout — invalidate refresh token",branch:"feature/auth-logout",dep:"auth-login merged"},
+        {dev:"BE1",name:"SMTP mailer — PHP mailer configured, welcome email template. SPF + DKIM configured on sending domain.",branch:"feature/auth-smtp",dep:"auth-register merged"},
+        {dev:"BE1",name:"Brute force lockout — lock account after 10 fails, 15-min cooldown, lockout email sent. Admin dashboard shows locked accounts list.",branch:"feature/sec-bruteforce",dep:"auth-login merged"},
+        {dev:"BE2",name:"Role middleware — 401 for unauthenticated, 403 for wrong role on protected routes",branch:"feature/auth-middleware",dep:"auth-login merged"},
+        {dev:"BE2",name:"Supplier register — POST /api/supplier/register, document upload (Individual/Company), files stored outside public/",branch:"feature/supplier-register",dep:"auth-middleware, DB migrations"},
+        {dev:"BE2",name:"Admin approval API — GET pending list, POST approve, POST reject with reason + email notification to supplier",branch:"feature/supplier-approval-api",dep:"supplier-register merged"},
+        {dev:"BE3",name:"Seed categories — all categories from PRD with slugs and commission rates",branch:"chore/categories-seed",dep:"DB migrations"},
+        {dev:"Frank",name:"POST /api/auth/forgot-password — OTP generated, hashed, emailed. Unknown email still returns 200 (enumeration prevention).",branch:"feature/auth-forgot",dep:"SMTP merged"},
+        {dev:"Frank",name:"POST /api/auth/reset-password — validate OTP (15-min expiry), update password, invalidate OTP. Expired: 400.",branch:"feature/auth-reset",dep:"auth-forgot merged"},
+        {dev:"Frank",name:"Register screen — client-side validation, connected to POST /api/auth/register",branch:"feature/auth-register-ui",dep:"tokens.css, base-layout, design approved"},
+        {dev:"Frank",name:"Login screen — JWT stored, redirect to dashboard, shake animation on wrong credentials",branch:"feature/auth-login-ui",dep:"auth-register-ui merged"},
+        {dev:"Frank",name:"OTP Entry + Reset Password screens — auto-submit on 6th digit, countdown timer",branch:"feature/auth-otp-ui",dep:"auth-forgot/reset APIs + design approved"},
+        {dev:"FE2",name:"Supplier registration screen — account type selector, document upload area, submit confirmation page",branch:"feature/supplier-register-ui",dep:"supplier-register API + design approved"},
+        {dev:"FE2",name:"Admin supplier approval UI — pending list, view documents inline, approve/reject with reason field",branch:"feature/supplier-approval-ui",dep:"supplier-approval-api + base-layout"},
+        {dev:"Frank",name:"Phase 1 internal review — test all auth endpoints on staging, compile bug list, share with team",branch:"—",dep:"All Phase 1 merged to dev"},
+        {dev:"All",name:"Fix all critical + high Phase 1 bugs before April 1",branch:"fix/*",dep:"Review complete"},
+      ]},
+    ]},
+  ]},
 
-// ── Render ──────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════
+// PHASE 2 — APR–MAY
+// ═══════════════════════════════════════════════════════════════════════
+{ title:"Phase 2 — April–May 2026", color:"blue",
+  note:{style:"pn-blue", text:"Core marketplace build. Trial ends May 31. Both Paystack test mode and Wise sandbox must be working before real money touches the platform."},
+  months:[
+  { name:"April 2026 — Trial Month 2", color:"blue",
+    weeks:[
+    { label:"Week 3", dates:"Apr 1–7", focus:"Product CRUD · Category filtering · Product detail page", color:"blue",
+      tasks:[
+        {dev:"BE2",name:"POST /api/supplier/products — images, price, category, MOQ, source_type (Ghana Stock / China Direct)",branch:"feature/product-create",dep:"supplier-approval, categories-seed"},
+        {dev:"BE2",name:"GET /api/products — paginated list with filters: category, source_type, price range, MOQ, keyword search",branch:"feature/product-list",dep:"product-create merged"},
+        {dev:"BE2",name:"GET /api/products/{id} — product detail + supplier's other active products",branch:"feature/product-detail",dep:"product-list merged"},
+        {dev:"BE2",name:"PUT + DELETE /api/supplier/products/{id} — own products only. Other supplier's product: 403.",branch:"feature/product-edit",dep:"product-create merged"},
+        {dev:"BE3",name:"Auto-hide logic — product hidden automatically when stock=0 or expires_at is in the past",branch:"feature/product-auto-hide",dep:"product-create merged"},
+        {dev:"FE2",name:"Product listing page — card grid, source filter chips (Buy in Ghana / China Direct), category sidebar, price range slider, search bar",branch:"feature/product-list-ui",dep:"product-list API + design approved"},
+        {dev:"Mobile",name:"Product detail page — image carousel, description, price, MOQ, supplier info block, Add to Cart (auth only)",branch:"feature/product-detail-ui",dep:"product-detail API + design approved"},
+      ]},
+    { label:"Week 4", dates:"Apr 8–14", focus:"Supplier upload UI · Import request backend · Customs duty calc", color:"blue",
+      tasks:[
+        {dev:"Frank",name:"Supplier product upload screen — name, price, category dropdown, MOQ, image upload, source_type toggle, short video optional",branch:"feature/product-upload-ui",dep:"product-create API + design approved"},
+        {dev:"BE2",name:"POST /api/import-requests — 6-field form, preferred supplier field, status=pending, notify admin + matched suppliers",branch:"feature/import-create",dep:"auth-middleware, supplier-approval"},
+        {dev:"BE2",name:"POST /api/import-requests/{id}/respond — supplier quote: arrival window, shipping method, customs handler, landed cost breakdown",branch:"feature/import-respond",dep:"import-create merged"},
+        {dev:"BE2",name:"POST /api/import-requests/{id}/confirm — customer accepts quote, triggers escrow hold in wallet",branch:"feature/import-confirm",dep:"import-respond + wallet stub OK"},
+        {dev:"BE2",name:"PATCH /api/import-requests/{id}/status — supplier updates: processing → shipped (+ DHL tracking) → delivered",branch:"feature/import-status",dep:"import-confirm merged"},
+        {dev:"BE2",name:"Customs duty calculator — CIF + Ghana VAT 15% + NHIL 2.5% + GETFL 0.5% = landed cost. Displayed as itemised breakdown at checkout.",branch:"feature/customs-calc",dep:"import-confirm"},
+        {dev:"FE2",name:"Import request form UI — 6 input fields, image upload, preferred supplier selector, submit confirmation with request ID + '48-hour response' message",branch:"feature/import-form-ui",dep:"import-create API + design approved"},
+        {dev:"BE1",name:"Wishlist API — POST /api/wishlist/{id} add, DELETE remove, GET /api/wishlist list",branch:"feature/wishlist",dep:"product-create merged"},
+      ]},
+    { label:"Week 5", dates:"Apr 15–21", focus:"Import transparency UI · Logistics APIs · Follow system · Wishlist", color:"blue",
+      tasks:[
+        {dev:"FE2",name:"Import request detail page — all 5 transparency fields visible: arrival window, shipping, customs, price breakdown. Confirm button fires confirm API.",branch:"feature/import-detail-ui",dep:"import-respond API + design approved"},
+        {dev:"Frank",name:"Supplier follow system — POST/DELETE /api/suppliers/{id}/follow. Follow/Unfollow button on store cards and product pages. Persists on refresh.",branch:"feature/follow-supplier",dep:"supplier-approval API"},
+        {dev:"FE2",name:"Wishlist UI — heart icon on product cards + detail page. Wishlist page in customer dashboard.",branch:"feature/wishlist-ui",dep:"wishlist API + design approved"},
+        {dev:"Frank",name:"Supplier dashboard products tab — list own products, edit inline, delete with confirmation dialog. Out-of-stock shown as hidden badge.",branch:"feature/supplier-products-dash",dep:"product-edit API + design approved"},
+        {dev:"BE2",name:"DHL Ghana API — auto-generate shipping label + QR code per order. Webhook receives tracking events and maps to order status.",branch:"feature/dhl-api",dep:"order-place API"},
+        {dev:"BE2",name:"AfterShip integration — unified tracking across DHL, 4PX, 900+ carriers via single webhook. Maps carrier statuses to platform ORDER_STATUSES enum.",branch:"feature/aftership",dep:"dhl-api"},
+        {dev:"BE2",name:"GET /api/suppliers/{id} — public store profile: name, bio, product count, Trust Score placeholder (0), badges placeholder",branch:"feature/supplier-profile",dep:"supplier-approval merged"},
+      ]},
+    { label:"Week 6", dates:"Apr 22–30", focus:"Cart · Order placement · Wallet API · Payment webhooks", color:"blue",
+      tasks:[
+        {dev:"BE3",name:"Cart API — GET cart, POST add item, PUT update quantity, DELETE remove item. Cart persists across sessions for logged-in users.",branch:"feature/cart",dep:"product-list + auth-middleware"},
+        {dev:"FE2",name:"Cart screen — item list, quantity steppers (min 1, max stock), remove with confirm dialog, subtotal, proceed to checkout CTA",branch:"feature/cart-ui",dep:"cart API + design approved"},
+        {dev:"BE3",name:"POST /api/orders — place order from cart, create order + order_items, clear cart, send order confirmation email",branch:"feature/order-place",dep:"cart + auth-middleware"},
+        {dev:"Frank",name:"Order confirmation screen — order ID, item summary table, estimated delivery, Track Order CTA",branch:"feature/order-confirm-ui",dep:"order-place API merged"},
+        {dev:"BE1",name:"Wallet API — GET balance + transaction history, POST /api/wallet/deposit/paystack returns Paystack checkout URL",branch:"feature/wallet",dep:"auth-middleware + wallets table"},
+        {dev:"BE1",name:"Paystack webhook — POST /api/webhooks/paystack, validate HMAC signature, credit wallet on success. Invalid signature: 400.",branch:"feature/paystack-webhook",dep:"wallet merged"},
+        {dev:"BE1",name:"Stripe payment intent — POST /api/wallet/deposit/stripe creates PaymentIntent. POST /api/webhooks/stripe confirms and credits wallet.",branch:"feature/stripe-webhook",dep:"wallet merged"},
+      ]},
+    ]},
+  { name:"May 2026 — Trial ends May 31", color:"blue",
+    weeks:[
+    { label:"Week 7", dates:"May 1–7", focus:"Order tracking · Wise payouts · Wallet UI", color:"blue",
+      tasks:[
+        {dev:"BE3",name:"PATCH /api/orders/{id}/status — supplier updates: processing → shipped (+ tracking number) → delivered. Attempting to update another supplier's order: 403.",branch:"feature/order-status",dep:"order-place merged"},
+        {dev:"BE3",name:"POST /api/orders/{id}/confirm-delivery — customer confirms receipt. Triggers escrow release and queues supplier payout.",branch:"feature/order-confirm-delivery",dep:"order-status + escrow"},
+        {dev:"Frank",name:"Order tracking UI — step-by-step timeline (Pending→Processing→Shipped→Delivered), live tracking number, Confirm Delivery button",branch:"feature/order-tracking-ui",dep:"order-status API + design approved"},
+        {dev:"BE1",name:"Wise Business API — pay Chinese suppliers in CNY or USD directly to bank on delivery confirm. pay_supplier_safe() checks Wise balance before initiating.",branch:"feature/payout-wise",dep:"escrow + supplier-approval"},
+        {dev:"BE1",name:"Stripe Instant Payout → Wise float replenishment via background task. Triggers automatically when Wise GBP balance drops below configured threshold.",branch:"feature/float-replenish",dep:"payout-wise"},
+        {dev:"FE2",name:"Wallet screen — GHS balance card, total spent stat, chronological transaction history, Paystack + Stripe deposit buttons",branch:"feature/wallet-ui",dep:"wallet + webhooks + design approved"},
+      ]},
+    { label:"Week 8", dates:"May 8–14", focus:"Escrow · Order management · Order list APIs", color:"blue",
+      tasks:[
+        {dev:"BE3",name:"Escrow system — hold wallet funds on order confirm, release on delivery confirm, hold frozen if dispute raised. Wallet only deducted at order placement.",branch:"feature/escrow",dep:"order-place + wallet"},
+        {dev:"BE3",name:"GET /api/orders (customer view) + GET /api/supplier/orders (supplier view), both support ?status= filter",branch:"feature/orders-list",dep:"order-place merged"},
+        {dev:"FE2",name:"Customer orders page — list with colour-coded status chips, click row to open tracking detail",branch:"feature/customer-orders-ui",dep:"orders-list + design approved"},
+        {dev:"Frank",name:"Supplier orders page — incoming orders queue, accept/reject buttons, update status, add tracking number inline",branch:"feature/supplier-orders-ui",dep:"order-status API + design approved"},
+        {dev:"BE1",name:"Order emails — HTML order confirmation email + order shipped notification email with tracking link",branch:"feature/order-emails",dep:"SMTP + order-place"},
+      ]},
+    { label:"Week 9", dates:"May 15–21", focus:"Chat system — general (24h expiry) + order-linked (permanent)", color:"blue",
+      tasks:[
+        {dev:"BE1",name:"Chat API — POST initiate (customer only, supplier attempting: 403), GET thread list, GET messages in thread. 24h expiry on general chats, NULL on order-linked.",branch:"feature/chat",dep:"auth-middleware + supplier-approval"},
+        {dev:"BE1",name:"POST /api/chats/{id}/messages — send text + optional media attachment. expires_at enforced per chat type.",branch:"feature/chat-send",dep:"chat merged"},
+        {dev:"BE1",name:"PUT edit message (within 3-min window only) + PATCH star / unstar any message",branch:"feature/chat-edit",dep:"chat-send merged"},
+        {dev:"BE1",name:"POST /api/chats/{id}/rate — customer rates supplier 1–5 stars after chat closes. Second attempt returns 409.",branch:"feature/chat-rate",dep:"chat merged"},
+        {dev:"Frank",name:"Chat UI — message bubbles, send input, media upload, star/edit context menu, expiry countdown on general chats, 'Order-linked' badge on persistent chats",branch:"feature/chat-ui",dep:"all chat APIs + design approved"},
+        {dev:"BE1",name:"In-app notifications — create notification record on new chat message. Bell icon shows unread count badge.",branch:"feature/notif",dep:"chat merged"},
+        {dev:"Mobile",name:"Assist Frank on chat UI responsive layout and mobile-specific touch interactions",branch:"feature/chat-ui-mobile",dep:"chat-ui merged"},
+      ]},
+    { label:"Week 10", dates:"May 22–31", focus:"Integration test · Customer dashboard · Trial evaluation", color:"blue",
+      tasks:[
+        {dev:"BE2",name:"Import request auto-creates persistent order-linked chat thread between buyer and supplier",branch:"feature/import-chat-link",dep:"import-create + chat"},
+        {dev:"FE2",name:"Customer dashboard — active orders widget, in-transit count, recent orders list, followed suppliers row, wallet balance card",branch:"feature/customer-dash",dep:"orders-list + wallet + follow + design approved"},
+        {dev:"Frank",name:"Notification bell — unread count badge on bell, dropdown list of notifications, mark as read, click navigates to source",branch:"feature/notif-ui",dep:"notif API + design approved"},
+        {dev:"Frank",name:"Full Phase 2 integration test on staging — walk through: register → browse → import request → cart → order → wallet deposit → pay → chat → confirm delivery",branch:"—",dep:"All Phase 2 merged"},
+        {dev:"All",name:"Fix ALL critical + high bugs found in integration test before May 31",branch:"fix/*",dep:"Integration test complete"},
+        {dev:"All",name:"Trial evaluation — Frank reviews all Phase 1+2 deliverables against Sprint Guide. Written verdict on each developer. Team contract decision by June 1.",branch:"—",dep:"Integration test passed"},
+      ]},
+    ]},
+  ]},
+
+// ═══════════════════════════════════════════════════════════════════════
+// PHASE 3 — JUN–JUL
+// ═══════════════════════════════════════════════════════════════════════
+{ title:"Phase 3 — June–July 2026", color:"blue",
+  note:{style:"pn-blue", text:"Intelligence layer. Trust Score, Capital Loop, Shorts feed, Admin panel, and Dispute system all ship this phase."},
+  months:[
+  { name:"June 2026 — Post-trial", color:"blue",
+    weeks:[
+    { label:"Week 11", dates:"Jun 1–7", focus:"Shorts backend · Trust Score engine", color:"blue",
+      tasks:[
+        {dev:"BE2",name:"POST /api/supplier/shorts — upload video linked to a product, store on S3-compatible storage",branch:"feature/shorts-upload",dep:"product-create + supplier-approval"},
+        {dev:"BE2",name:"GET /api/shorts — paginated feed. Followed suppliers prioritised for authenticated users. Guests get general popularity order.",branch:"feature/shorts-feed",dep:"shorts-upload + follow-supplier"},
+        {dev:"BE2",name:"POST /api/shorts/{id}/view — increment view_count, debounced per IP per hour",branch:"feature/shorts-view",dep:"shorts-feed merged"},
+        {dev:"BE2",name:"DELETE /api/supplier/shorts/{id} own only + GET /api/supplier/shorts/{id}/stats (views, clicks)",branch:"feature/shorts-manage",dep:"shorts-upload merged"},
+        {dev:"BE2",name:"Trust Score engine — composite score from: account verification, order volume, refund rate, chat rating average, dispute outcomes, content reliability",branch:"feature/trust-score",dep:"orders-list + chat-rate — disputes stub OK"},
+        {dev:"BE2",name:"Trust Score event log — write one record to trust_score_events on every score-affecting action",branch:"feature/trust-events",dep:"trust-score merged"},
+        {dev:"Frank",name:"Shorts upload UI in supplier dashboard — video file picker, linked product selector, title field, thumbnail upload",branch:"feature/shorts-upload-ui",dep:"shorts-upload API + design approved"},
+      ]},
+    { label:"Week 12", dates:"Jun 8–14", focus:"Shorts feed UI · Supplier profile · Badges", color:"blue",
+      tasks:[
+        {dev:"Frank",name:"Shorts feed — vertical full-screen scroll, snap-to-short, autoplay muted, tap to unmute, product overlay card, inline follow button",branch:"feature/shorts-feed-ui",dep:"shorts-feed + follow-supplier + design approved"},
+        {dev:"Frank",name:"Supplier profile page — store name, bio, Trust Score stars (live), active badges, product grid, Follow button",branch:"feature/supplier-profile-ui",dep:"supplier-profile API + design approved"},
+        {dev:"Frank",name:"Shorts management in supplier dashboard — list own shorts, view counts, delete with confirmation",branch:"feature/shorts-manage-ui",dep:"shorts-manage API merged"},
+        {dev:"BE2",name:"Badge auto-award — Fast Responder (median first response < threshold), Clear Communicator (avg chat rating > threshold)",branch:"feature/badges",dep:"trust-score + chat-rate"},
+        {dev:"BE2",name:"Platform-Backed Supplier badge — auto-awarded when overall Trust Score crosses configured threshold",branch:"feature/platform-badge",dep:"trust-score merged"},
+        {dev:"Mobile",name:"Build Shorts feed mobile-specific interactions: swipe gestures, double-tap like, bottom sheet product details",branch:"feature/shorts-mobile",dep:"shorts-feed-ui merged"},
+      ]},
+    { label:"Week 13", dates:"Jun 15–21", focus:"Trust Score display · Dispute system", color:"blue",
+      tasks:[
+        {dev:"Frank",name:"Trust Score display on supplier profile — star rating, Verified Import Partner / Top China Supplier / Fast Responder / Clear Communicator badges in #F4A300 gold",branch:"feature/trust-score-ui",dep:"trust-score + supplier-profile-ui"},
+        {dev:"BE3",name:"Dispute API — POST raise dispute (with evidence upload), GET dispute detail, POST supplier response, POST admin ruling, escrow released per ruling, outcome writes to trust_score_events",branch:"feature/dispute",dep:"escrow + orders-list + auth-middleware"},
+        {dev:"FE2",name:"Dispute UI — customer raises dispute (reason + evidence), supplier response panel, admin ruling view with escrow outcome",branch:"feature/dispute-ui",dep:"dispute API + design approved"},
+        {dev:"Mobile",name:"Responsive QA pass on all Phase 2 screens at 360px, 390px, 768px — report any broken layouts to Frank",branch:"—",dep:"Phase 2 screens complete"},
+      ]},
+    { label:"Week 14", dates:"Jun 22–30", focus:"Capital Loop engine · Flash sales", color:"blue",
+      tasks:[
+        {dev:"BE2",name:"Capital Loop credit engine — earn credits from: Shorts views, low refund rate, fast chat responses, positive ratings. Tiers auto-upgrade when threshold crossed.",branch:"feature/capital-loop",dep:"trust-score + shorts-view + chat-rate"},
+        {dev:"BE2",name:"Capital Loop benefits engine — per tier: payout speed multiplier, commission fee discount, max import order limit, tier badge. Applied automatically on tier change.",branch:"feature/capital-benefits",dep:"capital-loop merged"},
+        {dev:"Frank",name:"Capital Loop dashboard — credits balance, current tier name, active benefits list, progress bar to next tier. #F4A300 gold on all tier elements.",branch:"feature/capital-ui",dep:"capital-loop + design approved"},
+        {dev:"BE3",name:"Flash sale API — POST create (title, discount %, start/end datetime, target products), auto-activate/deactivate by timestamp, GET currently active sale",branch:"feature/flash-sale",dep:"auth-middleware (admin role)"},
+      ]},
+    ]},
+  { name:"July 2026 — Post-trial", color:"blue",
+    weeks:[
+    { label:"Week 15", dates:"Jul 1–7", focus:"Admin dashboard · Content moderation · Chat monitoring", color:"blue",
+      tasks:[
+        {dev:"BE3",name:"Admin stats API — GET /api/admin/stats: total users, total orders, revenue, new signups. Filters: daily / weekly / monthly.",branch:"feature/admin-stats",dep:"orders-list + auth-middleware(admin)"},
+        {dev:"FE2",name:"Admin dashboard overview — stats cards, period filter tabs, supplier approval queue widget, disputed orders count",branch:"feature/admin-dash-ui",dep:"admin-stats + supplier-approval-api + design approved"},
+        {dev:"BE3",name:"Content moderation API — GET flagged queue (shorts + products), DELETE item from platform (DB + storage)",branch:"feature/moderation",dep:"shorts-upload + product-create + auth-middleware(admin)"},
+        {dev:"FE2",name:"Admin content moderation UI — flagged items list, preview panel, remove button with confirmation",branch:"feature/moderation-ui",dep:"moderation API + design approved"},
+        {dev:"BE3",name:"Chat keyword monitoring — scan messages for prohibited keyword list, surface flagged threads to admin queue",branch:"feature/chat-monitor",dep:"chat merged"},
+        {dev:"Mobile",name:"Prototype mobile admin notification view — push alert when new dispute raised or supplier pending approval",branch:"feature/admin-notif-mobile",dep:"notif API"},
+      ]},
+    { label:"Week 16", dates:"Jul 8–14", focus:"Admin flash sales · Supplier payout system", color:"blue",
+      tasks:[
+        {dev:"FE2",name:"Admin flash sale UI — create form, live preview of active sale banner, countdown timer shown platform-wide to customers",branch:"feature/flash-sale-ui",dep:"flash-sale API + design approved"},
+        {dev:"BE1",name:"Supplier payout system — Paystack / Flutterwave for local Ghana suppliers, Wise for international. Payout speed tier modified by Capital Loop.",branch:"feature/supplier-payout",dep:"escrow + capital-benefits + supplier-approval"},
+        {dev:"Frank",name:"Admin supplier management — full list, filter by status (pending/active/suspended), approve/reject/suspend inline, view documents",branch:"feature/admin-supplier-ui",dep:"supplier-approval-api + design approved"},
+        {dev:"FE2",name:"Admin chat monitoring UI — flagged thread list, full thread view, dismiss flag or escalate to suspension",branch:"feature/admin-chat-ui",dep:"chat-monitor merged"},
+      ]},
+    { label:"Week 17–18", dates:"Jul 15–31", focus:"Phase 3 integration · Responsive audit · Mobile handoff prep", color:"blue",
+      tasks:[
+        {dev:"Frank",name:"Full Phase 3 integration test — Shorts → Trust Score → Capital Loop → Admin panel → Disputes all tested end to end on staging",branch:"—",dep:"All Phase 3 merged"},
+        {dev:"All",name:"Fix all critical + high Phase 3 bugs. Zero critical bugs allowed to carry into Phase 4A.",branch:"fix/*",dep:"Integration test complete"},
+        {dev:"Mobile",name:"Full mobile requirements document — screen-by-screen Android specs, API endpoints list, push notification events, camera/file picker requirements, offline behaviour",branch:"—",dep:"All Phase 3 APIs complete"},
+        {dev:"Frank",name:"Responsive audit — every screen tested at 360px, 390px, 768px, 1280px. Mobile bottom nav always visible. Zero broken layouts.",branch:"fix/responsive-*",dep:"Phase 3 complete"},
+        {dev:"BE1",name:"Password change endpoint + account settings page (email, name, notification preferences)",branch:"feature/account-settings",dep:"auth-login merged"},
+        {dev:"FE2",name:"Account settings UI — change password form, notification toggles, account deactivation option",branch:"feature/account-settings-ui",dep:"account-settings API + design approved"},
+      ]},
+    ]},
+  ]},
+
+// ═══════════════════════════════════════════════════════════════════════
+// SECURITY
+// ═══════════════════════════════════════════════════════════════════════
+{ title:"Security Hardening — Aug 1–21, 2026", color:"red",
+  note:{style:"pn-red", text:"Owned entirely by Frank (Lead). Zero tasks delegated unless Frank explicitly asks for help. Every item below must pass before Phase 4B begins on Aug 22."},
+  months:[
+  { name:"Security Phase — Frank only unless help requested", color:"red",
+    weeks:[
+    { label:"Auth & Session Security", dates:"Aug 1–4", focus:"Brute force · Credential stuffing · JWT hardening · Enumeration", color:"red",
+      tasks:[
+        {dev:"Frank",name:"Brute force final verification — confirm: 10 failed logins triggers 429 + lockout email. Admin dashboard shows locked accounts list.",branch:"fix/sec-bruteforce",dep:"auth-login"},
+        {dev:"Frank",name:"Credential stuffing defense — HaveIBeenPwned API check on registration. Block passwords found in known breach databases.",branch:"feature/sec-hibp",dep:"auth-register"},
+        {dev:"Frank",name:"Password spraying detection — alert admin when >10 unique accounts fail login from same IP within 5 minutes",branch:"feature/sec-spray",dep:"auth-login"},
+        {dev:"Frank",name:"JWT hardening — 15-min access token, 7-day refresh with rotation on every use. ALL sessions invalidated on password change.",branch:"fix/sec-jwt",dep:"auth-login"},
+        {dev:"Frank",name:"Account enumeration prevention — forgot-password always returns 200 for unknown email. Registration uses same generic message for existing email.",branch:"fix/sec-enumeration",dep:"auth-forgot"},
+      ]},
+    { label:"Injection & Output Encoding", dates:"Aug 4–7", focus:"SQLi · Stored XSS · Reflected XSS · HTML injection · Command injection", color:"red",
+      tasks:[
+        {dev:"Frank",name:"SQL injection audit — verify every DB query uses PDO prepared statements. Zero raw string concatenation. Run SQLMap automated scan in CI.",branch:"fix/sec-sqli",dep:"All features complete"},
+        {dev:"Frank",name:"Stored XSS — verify all user input is escaped via htmlspecialchars() before output. CSP header blocks inline script execution.",branch:"fix/sec-xss-stored",dep:"All features complete"},
+        {dev:"Frank",name:"Reflected XSS — no user-supplied URL parameters reflected directly into HTML. All query strings sanitised before render.",branch:"fix/sec-xss-reflected",dep:"All features complete"},
+        {dev:"Frank",name:"HTML injection — strip all HTML tags from user text fields (name, bio, product description) before storage",branch:"fix/sec-html-inject",dep:"All features complete"},
+        {dev:"Frank",name:"Command injection — no exec() or shell_exec() called with user input. File upload: MIME validation + extension whitelist (jpg, png, webp, mp4, pdf). Files stored outside webroot.",branch:"fix/sec-cmd-inject",dep:"All features complete"},
+      ]},
+    { label:"CSRF · Clickjacking · Open Redirect · SSRF", dates:"Aug 7–10", focus:"Request forgery defenses", color:"red",
+      tasks:[
+        {dev:"Frank",name:"CSRF — synchroniser token on all state-changing forms and AJAX calls. Double-submit cookie pattern. Token rotated each session.",branch:"fix/sec-csrf",dep:"All features complete"},
+        {dev:"Frank",name:"Clickjacking — X-Frame-Options: DENY on all responses + CSP frame-ancestors: none",branch:"fix/sec-clickjack",dep:"All features complete"},
+        {dev:"Frank",name:"Open redirect — whitelist all valid redirect destinations. No ?redirect= parameter accepted without strict domain validation.",branch:"fix/sec-redirect",dep:"All features complete"},
+        {dev:"Frank",name:"SSRF — webhook and import request URLs validated against allowlist. Block 127.x/192.168.x/10.x/172.16.x ranges.",branch:"fix/sec-ssrf",dep:"All features complete"},
+      ]},
+    { label:"Footprinting Defense", dates:"Aug 10–13", focus:"WHOIS · DNS · HTTP headers · Ports · Directory enumeration · Dorking", color:"red",
+      tasks:[
+        {dev:"Frank",name:"WHOIS privacy — enable on Hostinger for snafrate.com. Verify: WHOIS lookup shows registrar proxy, not personal name/address.",branch:"—",dep:"Domain registered"},
+        {dev:"Frank",name:"DNS hardening — minimise public records, no internal IPs in any DNS record. Enable DNSSEC if supported by Hostinger.",branch:"—",dep:"Domain registered"},
+        {dev:"Frank",name:"HTTP header stripping — remove X-Powered-By and PHP version header from ALL responses. Return generic Server header.",branch:"fix/sec-headers-strip",dep:"All features complete"},
+        {dev:"Frank",name:"Port hardening — production server: only ports 80 and 443 open. SSH moved to non-standard port, key-only auth, no password login.",branch:"chore/prod-ports",dep:"Production server setup"},
+        {dev:"Frank",name:"Directory enumeration — disable Apache/Nginx directory listing. robots.txt disallows /admin/, /api/, /storage/. Custom 404 page: no stack traces.",branch:"fix/sec-dir-enum",dep:"All features complete"},
+        {dev:"Frank",name:"Google dorking defense — .env above public/ webroot. No sensitive config files in public/. Verify with site:snafrate.com dork.",branch:"fix/sec-dorking",dep:"Production server setup"},
+        {dev:"Frank",name:"Banner grabbing prevention — custom error pages for 404 and 500. All error responses are version-free and framework-free.",branch:"fix/sec-banner",dep:"All features complete"},
+      ]},
+    { label:"Network & File Upload Attacks", dates:"Aug 13–17", focus:"MITM · DDoS · DNS hijacking · IDOR · Traversal · Upload exploits", color:"red",
+      tasks:[
+        {dev:"Frank",name:"HTTPS enforced — HSTS with max-age=31536000 + includeSubDomains. All HTTP automatically 301 to HTTPS. No mixed content.",branch:"fix/sec-https",dep:"Production server"},
+        {dev:"Frank",name:"DDoS / SYN flood — Alibaba Cloud network-level DDoS protection enabled. App-level: 5 req/s per IP on all API endpoints. Cloudflare proxy on production domain.",branch:"fix/sec-ddos",dep:"Production server"},
+        {dev:"Frank",name:"DNS hijacking monitoring — set up weekly automated DNS record diff check. Alert if A record or NS record changes unexpectedly.",branch:"—",dep:"Domain registered"},
+        {dev:"Frank",name:"ARP poisoning policy — team rule documented in CONTRIBUTING.md: no development work on public WiFi without VPN.",branch:"—",dep:"—"},
+        {dev:"Frank",name:"File upload hardening — server-side MIME validation, extension whitelist. Max: 5MB images, 100MB video. UUID filenames generated server-side. Files stored outside webroot.",branch:"fix/sec-upload",dep:"All features complete"},
+        {dev:"Frank",name:"Directory traversal — no user-supplied file paths in any file operation. All paths constructed server-side only.",branch:"fix/sec-traversal",dep:"All features complete"},
+        {dev:"Frank",name:"IDOR audit — verify every resource endpoint checks ownership before returning data. GET /api/orders/{id}: order must belong to authenticated user.",branch:"fix/sec-idor",dep:"All features complete"},
+      ]},
+    { label:"Honeypots & Intrusion Detection", dates:"Aug 17–19", focus:"Form honeypots · Fake admin routes · Anomaly detection", color:"red",
+      tasks:[
+        {dev:"Frank",name:"Form honeypot — hidden input field (display:none + tabindex=-1 + autocomplete=off) on all public forms. If filled: silently reject + log IP.",branch:"feature/honeypot-form",dep:"All forms complete"},
+        {dev:"Frank",name:"Admin route honeypots — /wp-admin, /admin/login, /phpmyadmin all return 200 with fake login form. Log IP + user agent. Alert admin if >5 hits from same IP.",branch:"feature/honeypot-routes",dep:"All features complete"},
+        {dev:"Frank",name:"API ghost fields — include unused dummy fields in select API responses. Monitor any POST requests that include these fields.",branch:"feature/honeypot-api",dep:"All features complete"},
+        {dev:"Frank",name:"Failed auth monitoring dashboard — admin sees: IPs with most failed attempts, time-of-day patterns, which usernames targeted",branch:"feature/auth-monitor",dep:"auth-login"},
+        {dev:"Frank",name:"Anomaly detection — alert admin when single IP hits >100 unique endpoints in 1 minute, or undefined routes hit >20 times in 5 minutes",branch:"feature/sec-anomaly",dep:"All features complete"},
+      ]},
+    { label:"Security Headers · TLS · Data Protection", dates:"Aug 19–21", focus:"Headers · CSP · CORS · TLS · bcrypt · GDPA compliance", color:"red",
+      tasks:[
+        {dev:"Frank",name:"Security headers — set all: Strict-Transport-Security, X-Content-Type-Options: nosniff, X-Frame-Options: DENY, Referrer-Policy: strict-origin-when-cross-origin, Permissions-Policy. Target: A+ on securityheaders.com.",branch:"fix/sec-headers",dep:"All features complete"},
+        {dev:"Frank",name:"Content Security Policy — default-src 'self'. All inline scripts use server-generated nonce. No unsafe-eval. Run in report-only for 48h, then enforce.",branch:"fix/sec-csp",dep:"All features complete"},
+        {dev:"Frank",name:"CORS — API endpoints allow only snafrate.com origin. No wildcard (*) on any authenticated endpoint.",branch:"fix/sec-cors",dep:"All features complete"},
+        {dev:"Frank",name:"TLS configuration — TLS 1.2 minimum, TLS 1.3 preferred. Disable SSLv3, TLS 1.0, TLS 1.1. Confirm A grade on SSL Labs.",branch:"fix/sec-tls",dep:"Production server"},
+        {dev:"Frank",name:"bcrypt audit — verify cost factor 12 everywhere. Search codebase for any md5(), sha1(), or plaintext password storage. Check no passwords appear in any log file.",branch:"fix/sec-bcrypt",dep:"All features complete"},
+        {dev:"Frank",name:"JWT secret rotation procedure — JWT_SECRET in env only. Document: how to rotate secret, consequence (all tokens invalidated), when to trigger rotation.",branch:"fix/sec-jwt-rotate",dep:"auth-login"},
+        {dev:"Frank",name:"Ghana Data Protection Act 2012 compliance — privacy policy published, opt-in consent checkbox on registration, data retention policy documented, right-to-delete endpoint implemented.",branch:"fix/gdpa",dep:"auth-register"},
+      ]},
+    ]},
+  ]},
+
+// ═══════════════════════════════════════════════════════════════════════
+// PHASE 4B — QA + LAUNCH
+// ═══════════════════════════════════════════════════════════════════════
+{ title:"Phase 4B — QA & Launch — Aug 22–Sep 30, 2026", color:"blue",
+  note:{style:"pn-blue", text:"Security must be signed off before Week 21 QA begins. Public launch target: Sep 15–30, 2026."},
+  months:[
+  { name:"August 2026 — Pre-launch", color:"blue",
+    weeks:[
+    { label:"Week 21–22", dates:"Aug 22–Sep 1", focus:"Full QA regression · Performance audit", color:"blue",
+      tasks:[
+        {dev:"Frank",name:"Test every customer-facing user flow against PRD v1.0 spec. Document every bug with severity.",branch:"—",dep:"All features merged"},
+        {dev:"FE2",name:"Test every supplier flow and all admin panel flows. Document every bug with severity.",branch:"—",dep:"All features merged"},
+        {dev:"BE1 + BE2 + BE3",name:"API regression — test every endpoint against API reference doc. No unexpected 500s. All error codes correct.",branch:"—",dep:"All features merged"},
+        {dev:"Frank",name:"Performance audit — all pages under 2s on simulated 3G. All images served as WebP. Videos lazy-loaded. Run Lighthouse on product listing + detail pages.",branch:"fix/perf-*",dep:"QA pass"},
+        {dev:"Frank + FE2",name:"Mobile audit — all screens at 360px, 390px, 414px, 768px. Minimum 44px touch targets everywhere. No horizontal scroll.",branch:"fix/responsive-*",dep:"QA pass"},
+        {dev:"BE1",name:"Database query optimisation — add indexes on all frequently filtered columns. Eliminate N+1 queries on orders list and chat thread endpoints.",branch:"fix/db-perf",dep:"QA pass"},
+      ]},
+    ]},
+  { name:"September 2026 — LAUNCH", color:"blue",
+    weeks:[
+    { label:"Week 23", dates:"Sep 1–7", focus:"Load testing · Production server · Compliance", color:"blue",
+      tasks:[
+        {dev:"BE1 + Frank",name:"Load testing — 200 concurrent simulated users via k6 or Apache JMeter on staging. Zero 5xx errors. All responses under 2s.",branch:"fix/load-*",dep:"QA pass + security signed off"},
+        {dev:"Frank",name:"Production server — Alibaba Cloud Hong Kong instance, SSL A grade on SSL Labs, automated 24hr DB backups, self-hosted Sentry error tracking, uptime monitoring",branch:"chore/prod-setup",dep:"—"},
+        {dev:"Frank",name:"Refund policy finalised and published on platform. Linked in order confirmation emails and footer.",branch:"—",dep:"—"},
+        {dev:"Frank",name:"Wallet KYC/AML decision — implement lightweight KYC for wallets over GHS threshold, or formally scope for post-launch with written justification.",branch:"—",dep:"—"},
+        {dev:"Frank",name:"China accessibility test — load full platform from China IP via VPN. Confirm zero blocked resources (Alibaba Cloud HK avoids Great Firewall issues).",branch:"fix/china-compat",dep:"Production server"},
+      ]},
+    { label:"Week 24–25", dates:"Sep 8–21", focus:"Closed beta — real users", color:"blue",
+      tasks:[
+        {dev:"Frank",name:"Invite 20–50 real beta users — mix of buyers and at least 5–10 supplier applicants. Share structured feedback form.",branch:"—",dep:"Production server ready"},
+        {dev:"All",name:"Daily monitoring during beta: error logs, Sentry alerts, user feedback review, morning triage standup",branch:"—",dep:"Beta live"},
+        {dev:"All",name:"Fix ALL critical + high bugs from beta before Week 26",branch:"fix/*",dep:"Beta feedback"},
+        {dev:"Frank",name:"Onboard minimum 10 approved suppliers before public launch. Each supplier: 5+ products listed. At least 2 China Direct capable.",branch:"—",dep:"Supplier approval flow live"},
+        {dev:"Frank",name:"Final deployment checklist — DNS, SSL, DB backups, Sentry, uptime monitoring all confirmed live. Rollback plan documented.",branch:"—",dep:"Beta bugs fixed"},
+      ]},
+    { label:"Week 26–28", dates:"Sep 22–30", focus:"Public launch · Post-launch monitoring", color:"blue",
+      tasks:[
+        {dev:"Frank",name:"DNS switch — point snafrate.com to production server. TTL pre-lowered 48h before switch.",branch:"—",dep:"Deployment checklist signed off"},
+        {dev:"Frank",name:"Launch announcement — email to all beta users, platform push notification, any planned marketing posts",branch:"—",dep:"DNS live"},
+        {dev:"Frank + BE1",name:"48-hour post-launch standby — monitor error logs every 2 hours. Critical bug: hotfix deployed within 4 hours.",branch:"—",dep:"Launch"},
+        {dev:"Frank",name:"Week 1 post-launch review — error rates, user drop-off points, supplier onboarding friction, revenue. Written report shared with team.",branch:"—",dep:"7 days post-launch"},
+      ]},
+    ]},
+  ]},
+
+// ═══════════════════════════════════════════════════════════════════════
+// MARKETING LAYER
+// ═══════════════════════════════════════════════════════════════════════
+{ title:"Marketing Layer — Woven into Phases 2 & 3", color:"green",
+  note:{style:"pn-green", text:"These tasks must be built alongside the core features — not added after launch. SEO and email retention are the highest priority. Promoted listings and referrals unlock revenue from day one."},
+  months:[
+  { name:"SEO Foundation — Apr–May (Phase 2)", color:"green",
+    weeks:[
+    { label:"SEO", dates:"Apr–May", focus:"Organic traffic engine — must exist before public launch", color:"green",
+      tasks:[
+        {dev:"BE2",name:"Product pages — dynamic meta title, meta description, Open Graph tags. Each product page unique.",branch:"feature/seo-meta",dep:"product-detail-ui"},
+        {dev:"BE2",name:"XML sitemap — auto-generated, updates on product add/remove/hide. Submit to Google Search Console.",branch:"feature/seo-sitemap",dep:"product-list"},
+        {dev:"BE2",name:"Schema.org structured data — Product schema on product pages, BreadcrumbList on category pages",branch:"feature/seo-schema",dep:"product-detail-ui"},
+        {dev:"Frank",name:"robots.txt — allow product + category pages, disallow /admin/ /api/ /storage/ /uploads/",branch:"feature/seo-robots",dep:"—"},
+        {dev:"BE2",name:"Canonical URLs — prevent duplicate content from filtered/paginated product list pages",branch:"feature/seo-canonical",dep:"product-list"},
+        {dev:"Frank",name:"Page speed — all product pages under 2s. All images WebP. Lazy-load below-fold images. Lighthouse score > 85.",branch:"fix/seo-speed",dep:"product-detail-ui"},
+      ]},
+    ]},
+  { name:"Email Marketing — May (Phase 2)", color:"green",
+    weeks:[
+    { label:"Email Automation", dates:"May", focus:"Retention and re-engagement hooks", color:"green",
+      tasks:[
+        {dev:"BE1",name:"Abandoned cart recovery — if cart not converted in 24h, trigger reminder email with cart contents and link back",branch:"feature/email-cart-abandon",dep:"cart + SMTP"},
+        {dev:"BE1",name:"Weekly digest — email opted-in customers new listings from their followed suppliers. Sent every Monday morning.",branch:"feature/email-digest",dep:"follow-supplier + product-create + SMTP"},
+        {dev:"BE1",name:"Price drop alert — email customer when a wishlisted product price drops",branch:"feature/email-price-drop",dep:"wishlist + product-edit + SMTP"},
+        {dev:"BE1",name:"Back-in-stock notification — customer registers interest on out-of-stock product. Email when restocked.",branch:"feature/email-restock",dep:"product-auto-hide + SMTP"},
+        {dev:"BE1",name:"Weekly deals newsletter — admin composes + sends to opted-in list. Unsubscribe link required in every email.",branch:"feature/email-newsletter",dep:"SMTP + admin panel"},
+      ]},
+    ]},
+  { name:"Referral System — May (Phase 2)", color:"green",
+    weeks:[
+    { label:"Referrals", dates:"May", focus:"Word-of-mouth growth engine", color:"green",
+      tasks:[
+        {dev:"BE1",name:"Referral code generation — each user gets unique code on registration. GET /api/referral/code",branch:"feature/referral-code",dep:"auth-register"},
+        {dev:"BE3",name:"Referral tracking — when new user registers via referral link, record referrer_id on user record",branch:"feature/referral-track",dep:"referral-code + auth-register"},
+        {dev:"BE3",name:"Referral reward — on referred user's first completed order, credit both referrer and referee wallet with configured GHS amount",branch:"feature/referral-reward",dep:"referral-track + wallet + order-confirm-delivery"},
+        {dev:"Frank",name:"Referral UI — customer sees unique link, copy button, referral earnings history in dashboard",branch:"feature/referral-ui",dep:"referral-code API + design approved"},
+      ]},
+    ]},
+  { name:"Supplier Analytics — Jun–Jul (Phase 3)", color:"green",
+    weeks:[
+    { label:"Analytics", dates:"Jun–Jul", focus:"Give suppliers data to grow their store", color:"green",
+      tasks:[
+        {dev:"BE2",name:"Product view tracking — log every product page view (aggregate only, no personal data)",branch:"feature/analytics-views",dep:"product-detail"},
+        {dev:"BE2",name:"Conversion tracking — log add-to-cart and order events linked to product ID",branch:"feature/analytics-convert",dep:"cart + order-place"},
+        {dev:"BE2",name:"Supplier analytics API — GET /api/supplier/analytics: product views, click-through rate, conversion rate, revenue over time, top 5 products, Shorts performance",branch:"feature/supplier-analytics",dep:"analytics-views + analytics-convert"},
+        {dev:"Frank",name:"Supplier analytics dashboard UI — line chart views/week, bar chart top products, revenue over time, Shorts view counts",branch:"feature/supplier-analytics-ui",dep:"supplier-analytics API + design approved"},
+      ]},
+    ]},
+  { name:"Discovery & Promoted Listings — Jun–Jul (Phase 3)", color:"green",
+    weeks:[
+    { label:"Discovery", dates:"Jun–Jul", focus:"Help customers find more of what they want", color:"green",
+      tasks:[
+        {dev:"BE2",name:"Trending products — most viewed + most added-to-cart in last 7 days. GET /api/products/trending. Shown on homepage.",branch:"feature/trending",dep:"analytics-views + analytics-convert"},
+        {dev:"BE2",name:"Recently viewed — store last 10 viewed products per logged-in user. Shown as horizontal row on product pages.",branch:"feature/recently-viewed",dep:"product-detail + auth-middleware"},
+        {dev:"BE2",name:"Search autocomplete — as-you-type suggestions from product names and category names",branch:"feature/search-autocomplete",dep:"product-list"},
+        {dev:"FE2",name:"Trending section on homepage + recently viewed row on product detail pages",branch:"feature/discovery-ui",dep:"trending + recently-viewed APIs"},
+        {dev:"BE3",name:"Promoted listings — supplier boosts product from dashboard. POST /api/promotions (daily wallet deduction). 'Sponsored' label on boosted products in listings.",branch:"feature/promoted",dep:"product-create + wallet"},
+        {dev:"BE3",name:"Promotion billing — deduct from supplier wallet daily for active promotions. Auto-pause if wallet balance too low.",branch:"feature/promo-billing",dep:"promoted + wallet"},
+        {dev:"FE2",name:"Promoted listings UI — 'Sponsored' tag on cards. Supplier manages active promotions (budget, duration, target product) from dashboard.",branch:"feature/promoted-ui",dep:"promoted API + design approved"},
+      ]},
+    ]},
+  { name:"Customer Retention — Jul (Phase 3)", color:"green",
+    weeks:[
+    { label:"Retention", dates:"Jul", focus:"Keep customers coming back", color:"green",
+      tasks:[
+        {dev:"BE3",name:"Discount codes — supplier creates codes with % or fixed GHS discount + expiry date. Applied at cart checkout.",branch:"feature/discount-codes",dep:"cart + product-create"},
+        {dev:"FE2",name:"Coupon input at checkout + supplier coupon management page in supplier dashboard",branch:"feature/coupon-ui",dep:"discount-codes + design approved"},
+      ]},
+    ]},
+  ]},
+
+// ═══════════════════════════════════════════════════════════════════════
+// REGISTRATION & LEGAL
+// ═══════════════════════════════════════════════════════════════════════
+{ title:"Registration & Legal — Timed to When Each Is Needed", color:"purple",
+  note:{style:"pn-purple", text:"Do these in the order shown. Each one is timed to just before it becomes a blocker. Starting late on any item cascades and can delay the public launch."},
+  months:[
+  { name:"March 2026 — Start immediately", color:"purple",
+    weeks:[
+    { label:"March — Urgent", dates:"Mar 16–31", focus:"Company registration must start this week", color:"purple",
+      tasks:[
+        {dev:"Frank",name:"Register business at Registrar General's Department (RGD) — rgd.gov.gh or visit in Accra. Register as Limited Liability Company (LLC). Cost: ~GHS 500–800. Documents needed: 2 directors' names, registered office address, company objects clause.",branch:"—",dep:"—"},
+        {dev:"Frank",name:"Apply for company TIN at Ghana Revenue Authority — gra.gov.gh. Apply immediately after RGD registration. Takes 2–5 working days.",branch:"—",dep:"RGD Certificate of Incorporation"},
+        {dev:"Frank",name:"Open business bank account — Ecobank, Absa, or Fidelity all support tech startups. Required docs: Certificate of Incorporation + TIN + directors' IDs.",branch:"—",dep:"TIN received"},
+      ]},
+    ]},
+  { name:"April 2026 — Needed before Paystack goes live", color:"purple",
+    weeks:[
+    { label:"April — Payment accounts", dates:"Apr 1–15", focus:"Paystack + Flutterwave must be approved before wallet goes live in Week 6", color:"purple",
+      tasks:[
+        {dev:"Frank",name:"Apply for Paystack Ghana merchant account — paystack.com/gh. Required: business registration + TIN + business bank account + director ID. Approval takes 3–10 working days.",branch:"—",dep:"Bank account open"},
+        {dev:"Frank",name:"Apply for Flutterwave Ghana account — flutterwave.com. Same documents as Paystack. For backup local payout option for suppliers.",branch:"—",dep:"Bank account open"},
+        {dev:"Frank",name:"Verify Paystack account is in full live mode (not test mode) before Week 6 wallet development begins",branch:"—",dep:"Paystack applied"},
+      ]},
+    ]},
+  { name:"April–May 2026 — Needed before supplier payouts", color:"purple",
+    weeks:[
+    { label:"Apr–May — International payouts", dates:"Apr 15 – May 31", focus:"Wise Business needed before Wise payout integration in Week 7", color:"purple",
+      tasks:[
+        {dev:"Frank",name:"Apply for Wise Business account — wise.com/business. Required: Certificate of Incorporation + TIN + director passport/ID. Approval takes 2–4 weeks — start immediately.",branch:"—",dep:"Certificate of Incorporation"},
+        {dev:"Frank",name:"Verify Wise account is fully approved and can receive + send GBP/USD/CNY before Week 7 payout integration",branch:"—",dep:"Wise applied"},
+        {dev:"Frank",name:"Apply for Stripe Atlas or Stripe Ghana account for international card deposits — required docs same as Wise",branch:"—",dep:"Certificate of Incorporation"},
+      ]},
+    ]},
+  { name:"May 2026 — Needed before logistics integration", color:"purple",
+    weeks:[
+    { label:"May — DHL business account", dates:"May 1–15", focus:"DHL account needed before logistics integration in Week 5", color:"purple",
+      tasks:[
+        {dev:"Frank",name:"Apply for DHL Ghana business account — contact DHL Ghana directly at dhl.com/gh. Required: company registration + TIN. Gets commercial shipping rates and API sandbox access.",branch:"—",dep:"Certificate of Incorporation + TIN"},
+        {dev:"Frank",name:"Get DHL API sandbox credentials and share with BE2 for logistics integration in Week 5",branch:"—",dep:"DHL account approved"},
+      ]},
+    ]},
+  { name:"July 2026 — Needed before launch", color:"purple",
+    weeks:[
+    { label:"Jul — Data protection", dates:"Jul 1–31", focus:"Ghana Data Protection Commission registration required before handling user data at scale", color:"purple",
+      tasks:[
+        {dev:"Frank",name:"Register as a data controller with Ghana Data Protection Commission — dataprotection.org.gh. Required before public launch. Annual fee applies.",branch:"—",dep:"Certificate of Incorporation"},
+        {dev:"Frank",name:"Draft and publish Privacy Policy — must cover: what data collected, why, how stored, retention period, right to deletion, Ghana DPA 2012 compliance.",branch:"—",dep:"Data controller registration"},
+        {dev:"Frank",name:"Draft and publish Terms of Service — cover: supplier obligations, buyer protections, dispute resolution, platform liability limits, refund policy.",branch:"—",dep:"Legal counsel review recommended"},
+        {dev:"Frank",name:"Draft and publish Refund Policy — must define: timeframe for refund requests, what qualifies, escrow release conditions, dispute escalation path.",branch:"—",dep:"—"},
+      ]},
+    ]},
+  { name:"August 2026 — Final compliance before launch", color:"purple",
+    weeks:[
+    { label:"Aug — KYC / AML decision", dates:"Aug 1–21", focus:"Wallet KYC threshold must be decided before going live with real money", color:"purple",
+      tasks:[
+        {dev:"Frank",name:"Decide wallet KYC threshold — for wallets processing over a set GHS amount, implement lightweight KYC (Ghana Card / passport upload). OR formally document that this is scoped for post-launch with written risk assessment.",branch:"—",dep:"Legal counsel recommended"},
+        {dev:"Frank",name:"AfterShip terms of service — confirm commercial plan allows the webhook volume expected at launch. Upgrade plan if needed.",branch:"—",dep:"AfterShip account active"},
+        {dev:"Frank",name:"Review Wise Business terms for Ghana — confirm Wise allows commercial payout operations from a Ghana-registered entity to Chinese suppliers.",branch:"—",dep:"Wise account approved"},
+      ]},
+    ]},
+  ]},
+
+// ═══════════════════════════════════════════════════════════════════════
+// POST-LAUNCH
+// ═══════════════════════════════════════════════════════════════════════
+{ title:"Post-Launch — October 2026 – March 2027", color:"amber",
+  note:{style:"pn-amber", text:"Platform is live. Mobile dev now works full-time on the Android app. Web team continues improving the platform. Target: all 4 post-launch features shipped by March 2027."},
+  months:[
+  { name:"October 2026 — Loyalty Points", color:"amber",
+    weeks:[
+    { label:"Loyalty Points", dates:"Oct 1–31", focus:"Customer retention mechanism — earn points on every order", color:"amber",
+      tasks:[
+        {dev:"BE3",name:"Loyalty points backend — earn 1 point per GHS 1 spent on completed orders. Points stored in loyalty_points table. Redemption: 100 points = GHS 1 wallet credit.",branch:"feature/loyalty",dep:"order-confirm-delivery + wallet"},
+        {dev:"BE3",name:"Points redemption endpoint — POST /api/loyalty/redeem, validate balance, credit wallet, deduct points",branch:"feature/loyalty-redeem",dep:"loyalty merged"},
+        {dev:"Frank",name:"Loyalty UI — points balance card in customer dashboard, redemption button, points history list, 'Earn X points on this order' shown at checkout",branch:"feature/loyalty-ui",dep:"loyalty + loyalty-redeem APIs"},
+        {dev:"BE1",name:"Loyalty milestone emails — email customer when they hit 500, 1000, 2000 points milestones",branch:"feature/loyalty-emails",dep:"loyalty + SMTP"},
+        {dev:"Mobile",name:"Android app — continue development: Loyalty points screen + in-app points balance",branch:"—",dep:"Core screens built"},
+      ]},
+    ]},
+  { name:"November 2026 — Promoted Listings Revenue", color:"amber",
+    weeks:[
+    { label:"Promoted Listings", dates:"Nov 1–30", focus:"Platform revenue stream from supplier advertising spend", color:"amber",
+      tasks:[
+        {dev:"BE3",name:"Promoted listings billing dashboard — admin sees: total active promotions, daily revenue from promotions, top spending suppliers",branch:"feature/promo-admin",dep:"promoted + promo-billing"},
+        {dev:"BE2",name:"Promoted listings analytics — supplier sees: impressions, clicks, orders attributed to promotion, cost per click, ROI estimate",branch:"feature/promo-analytics",dep:"promoted + analytics-convert"},
+        {dev:"FE2",name:"Supplier promotion analytics UI — chart: impressions vs clicks vs orders over campaign duration",branch:"feature/promo-analytics-ui",dep:"promo-analytics API + design approved"},
+        {dev:"BE3",name:"Homepage banner ad slot — suppliers can buy featured banner placement on homepage for set period. Managed through admin.",branch:"feature/banner-ads",dep:"promoted + wallet"},
+        {dev:"FE2",name:"Homepage banner display — rotating featured supplier banner. Only show if active paid banner exists.",branch:"feature/banner-ui",dep:"banner-ads API"},
+        {dev:"Mobile",name:"Android app — product listings with Sponsored tags visible, banner ads rendered in feed",branch:"—",dep:"Product listing screen built"},
+      ]},
+    ]},
+  { name:"December 2026 — Affiliate & Influencer System", color:"amber",
+    weeks:[
+    { label:"Affiliate System", dates:"Dec 1–31", focus:"External traffic + influencer-driven sales with tracked commissions", color:"amber",
+      tasks:[
+        {dev:"BE1",name:"Affiliate registration — any user can apply to be an affiliate. Admin approves. Approved affiliates get unique tracking links per product or per supplier.",branch:"feature/affiliate-register",dep:"auth-middleware"},
+        {dev:"BE1",name:"Affiliate link tracking — when customer clicks affiliate link, store affiliate_id in session cookie (30-day window)",branch:"feature/affiliate-track",dep:"affiliate-register"},
+        {dev:"BE3",name:"Affiliate commission engine — on completed order from tracked session, calculate commission % (configured per category). Credit to affiliate wallet.",branch:"feature/affiliate-commission",dep:"affiliate-track + wallet + order-confirm-delivery"},
+        {dev:"BE3",name:"Affiliate payout — affiliates request payout of accumulated commissions to bank via Paystack. Minimum threshold applies.",branch:"feature/affiliate-payout",dep:"affiliate-commission + supplier-payout"},
+        {dev:"Frank",name:"Affiliate dashboard — tracking links generator, clicks/orders/earnings charts, payout request button",branch:"feature/affiliate-ui",dep:"affiliate APIs + design approved"},
+        {dev:"FE2",name:"Admin affiliate management — approved affiliates list, commission rates by category, pending payout requests",branch:"feature/affiliate-admin-ui",dep:"affiliate APIs + design approved"},
+        {dev:"Mobile",name:"Android app — affiliate dashboard screen, share tracking links via native share sheet",branch:"—",dep:"Dashboard screen built"},
+      ]},
+    ]},
+  { name:"October 2026 – March 2027 — Android App", color:"amber",
+    weeks:[
+    { label:"Android App — Phase 1", dates:"Oct–Nov", focus:"Core screens: auth, browse, product detail, cart, orders", color:"amber",
+      tasks:[
+        {dev:"Mobile",name:"Android project setup — Kotlin, Jetpack Compose, Retrofit for API calls, Hilt for DI, Firebase for push notifications",branch:"android/setup",dep:"All web APIs stable"},
+        {dev:"Mobile",name:"Auth screens — Login, Register, OTP Entry, Forgot Password. Identical flow to web but native Android UX.",branch:"android/auth",dep:"android/setup"},
+        {dev:"Mobile",name:"Product listing screen — grid layout, source filter chips, category filter bottom sheet, search with debounce",branch:"android/products",dep:"android/auth"},
+        {dev:"Mobile",name:"Product detail screen — image carousel (ViewPager2), Add to Cart, Follow supplier, Wishlist heart",branch:"android/product-detail",dep:"android/products"},
+        {dev:"Mobile",name:"Cart screen — item list, quantity steppers, swipe-to-delete, order total, checkout CTA",branch:"android/cart",dep:"android/product-detail"},
+        {dev:"Mobile",name:"Orders list + order tracking screen — timeline view, tracking number, Confirm Delivery button",branch:"android/orders",dep:"android/cart"},
+      ]},
+    { label:"Android App — Phase 2", dates:"Dec–Jan", focus:"Wallet, chat, Shorts feed, supplier profile, notifications", color:"amber",
+      tasks:[
+        {dev:"Mobile",name:"Wallet screen — balance, transaction history, Paystack in-app deposit via WebView",branch:"android/wallet",dep:"android/orders"},
+        {dev:"Mobile",name:"Chat screen — message bubbles, send bar, media picker, star/edit long-press menu",branch:"android/chat",dep:"android/wallet"},
+        {dev:"Mobile",name:"Shorts feed — vertical RecyclerView + ExoPlayer for video, snap scroll, product overlay bottom sheet, inline follow",branch:"android/shorts",dep:"android/chat"},
+        {dev:"Mobile",name:"Supplier profile screen — store info, Trust Score stars, badges, product grid, follow button",branch:"android/supplier-profile",dep:"android/shorts"},
+        {dev:"Mobile",name:"Push notifications — Firebase FCM integration. Notify: new order, order shipped, new chat message, dispute update.",branch:"android/push",dep:"android/auth"},
+        {dev:"Mobile",name:"Firebase Analytics + Crashlytics — track screen views, conversion events, crash reports",branch:"android/analytics",dep:"android/setup"},
+      ]},
+    { label:"Android App — Phase 3", dates:"Feb–Mar", focus:"QA, Play Store submission, launch", color:"amber",
+      tasks:[
+        {dev:"Mobile",name:"Full Android QA — test all flows on Pixel 6, Samsung Galaxy A series, and low-end device (2GB RAM). Fix all critical bugs.",branch:"—",dep:"All screens built"},
+        {dev:"Mobile",name:"Loyalty points screen, affiliate dashboard screen, promoted listings visible in feed",branch:"android/post-launch-features",dep:"loyalty + affiliate APIs"},
+        {dev:"Mobile",name:"Play Store listing — app icon, screenshots (6+ required), feature graphic, store description, content rating questionnaire",branch:"—",dep:"QA pass"},
+        {dev:"Mobile",name:"Submit to Google Play Store internal testing track. Fix any policy violations.",branch:"—",dep:"Play Store listing ready"},
+        {dev:"Frank",name:"Review and approve Android app internal build before Play Store submission",branch:"—",dep:"android QA pass"},
+        {dev:"Mobile",name:"Promote to production track on Google Play Store. Monitor crash rate and ANR rate for 48 hours post-publish.",branch:"—",dep:"Internal testing approved"},
+      ]},
+    ]},
+  ]},
+
+]; // end DATA
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────────────────────
+let states = {};
+try { states = JSON.parse(localStorage.getItem('snafrate_v4') || '{}'); } catch(e){}
+
 let currentFilter = 'all';
-let taskStates = JSON.parse(localStorage.getItem('snafrate_tasks') || '{}');
 
-function taskId(phaseI, monthI, weekI, taskI) {
-  return `${phaseI}-${monthI}-${weekI}-${taskI}`;
-}
+const COLOR_MAP = {
+  blue: {mhdr:'c-blue', whdr:'wc-blue', chk:'c-blue', tag:'tag-dev-blue'},
+  red:  {mhdr:'c-red',  whdr:'wc-red',  chk:'c-red',  tag:'tag-dev-red'},
+  green:{mhdr:'c-green',whdr:'wc-green',chk:'c-green',tag:'tag-dev-green'},
+  purple:{mhdr:'c-purple',whdr:'wc-purple',chk:'c-purple',tag:'tag-dev-purple'},
+  amber:{mhdr:'c-amber',whdr:'wc-amber',chk:'c-amber',tag:'tag-dev-amber'},
+};
 
-function saveStates() {
-  localStorage.setItem('snafrate_tasks', JSON.stringify(taskStates));
+function tid(pI,mI,wI,tI){ return `${pI}-${mI}-${wI}-${tI}`; }
+
+function save(){
+  try{ localStorage.setItem('snafrate_v4', JSON.stringify(states)); }catch(e){}
   updateStats();
 }
 
-function resetAll() {
-  if (!confirm('Reset all checkboxes?')) return;
-  taskStates = {};
-  saveStates();
-  document.querySelectorAll('.task-check').forEach(el => {
-    el.classList.remove('checked');
+function resetAll(){
+  if(!confirm('Reset all checkboxes? This cannot be undone.')) return;
+  states = {};
+  save();
+  document.querySelectorAll('.chk').forEach(el=>{
+    el.classList.remove('on');
     el.closest('.task-item').classList.remove('done');
   });
-  updateStats();
 }
 
-function toggleTask(id, el) {
-  const item = el.closest('.task-item');
-  if (taskStates[id]) {
-    delete taskStates[id];
-    el.classList.remove('checked');
-    item.classList.remove('done');
-  } else {
-    taskStates[id] = true;
-    el.classList.add('checked');
-    item.classList.add('done');
-  }
-  saveStates();
-  updateMonthProgress();
+function toggle(id, chk){
+  const item = chk.closest('.task-item');
+  if(states[id]){ delete states[id]; chk.classList.remove('on'); item.classList.remove('done'); }
+  else{ states[id]=1; chk.classList.add('on'); item.classList.add('done'); }
+  save();
+  updateMonthProg();
 }
 
-function setFilter(dev) {
+function setFilter(dev, e){
   currentFilter = dev;
-  document.querySelectorAll('.dev-filter').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-  document.querySelectorAll('.task-item').forEach(item => {
-    const d = item.dataset.dev;
-    item.style.display = (dev === 'all' || d.includes(dev)) ? '' : 'none';
+  document.querySelectorAll('.fchip').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  document.querySelectorAll('.task-item').forEach(item=>{
+    const d = item.dataset.dev || '';
+    item.style.display = (dev==='all' || d.includes(dev)) ? '' : 'none';
   });
 }
 
-function showPhase(i) {
-  document.querySelectorAll('.phase-panel').forEach((p,j) => p.classList.toggle('active', j === i));
-  document.querySelectorAll('.phase-tab').forEach((t,j) => t.classList.toggle('active', j === i));
-  const filterRow = document.getElementById('filterRow');
-  filterRow.style.display = i === 4 ? 'none' : '';
+function showTab(i, btn){
+  document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',j===i));
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.getElementById('filterRow').style.display = i===8 ? 'none' : '';
 }
 
-function updateMonthProgress() {
-  document.querySelectorAll('.month-card').forEach(card => {
-    const checks = card.querySelectorAll('.task-check');
-    const done = card.querySelectorAll('.task-check.checked').length;
-    const pct = checks.length ? Math.round(done / checks.length * 100) : 0;
-    const prog = card.querySelector('.month-progress');
-    if (prog) prog.textContent = `${done}/${checks.length} (${pct}%)`;
+function updateMonthProg(){
+  document.querySelectorAll('.month-card').forEach(card=>{
+    const all = card.querySelectorAll('.chk');
+    const done = card.querySelectorAll('.chk.on').length;
+    const pct = all.length ? Math.round(done/all.length*100) : 0;
+    const el = card.querySelector('.mprog');
+    if(el) el.textContent = `${done}/${all.length} (${pct}%)`;
   });
 }
 
-function updateStats() {
-  const all = document.querySelectorAll('.task-check');
-  const done = document.querySelectorAll('.task-check.checked');
+function updateStats(){
+  const all = document.querySelectorAll('.chk');
+  const done = document.querySelectorAll('.chk.on').length;
   const total = all.length;
-  const doneN = done.length;
-  const pct = total ? Math.round(doneN / total * 100) : 0;
-  document.getElementById('statTotal').textContent = total;
-  document.getElementById('statDone').textContent = doneN;
-  document.getElementById('statLeft').textContent = total - doneN;
-  document.getElementById('statPct').textContent = pct + '%';
-  document.getElementById('globalBar').style.width = pct + '%';
-  document.getElementById('globalLabel').textContent = `${doneN} / ${total} done`;
-  updateMonthProgress();
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('sTotal').textContent = total;
+  document.getElementById('sDone').textContent = done;
+  document.getElementById('sLeft').textContent = total - done;
+  document.getElementById('gBar').style.width = pct+'%';
+  document.getElementById('gLbl').textContent = `${done} / ${total}`;
+  updateMonthProg();
 }
 
-function renderDepMap() {
-  const panel = document.createElement('div');
-  panel.className = 'phase-panel';
-  const map = document.createElement('div');
-  map.className = 'dep-map';
-  const h = document.createElement('h3');
-  h.textContent = '📦 Module Dependency Map — Build in This Order';
-  map.appendChild(h);
-  const grid = document.createElement('div');
-  grid.className = 'dep-grid';
-  DEP_MAP.forEach(d => {
-    const card = document.createElement('div');
-    card.className = 'dep-card';
-    card.innerHTML = `<div class="module">${d.mod}</div>
-      <div class="dep-needs">Needs: <strong>${d.needs}</strong></div>
-      <div class="dep-needs" style="margin-top:4px;color:#666">${d.why}</div>`;
-    grid.appendChild(card);
-  });
-  map.appendChild(grid);
-  panel.appendChild(map);
-  return panel;
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────────────────────────────────────
+function render(){
+  const container = document.getElementById('panels');
 
-function render() {
-  const container = document.getElementById('phase-panels');
-  container.innerHTML = '';
-
-  PHASES.forEach((phase, phaseI) => {
+  D.forEach((phase, pI) => {
     const panel = document.createElement('div');
-    panel.className = 'phase-panel' + (phaseI === 0 ? ' active' : '');
+    panel.className = 'panel' + (pI===0 ? ' active' : '');
 
-    phase.months.forEach((month, monthI) => {
+    if(phase.note){
+      const note = document.createElement('div');
+      note.className = `phase-note ${phase.note.style}`;
+      note.textContent = phase.note.text;
+      panel.appendChild(note);
+    }
+
+    const cm = COLOR_MAP[phase.color] || COLOR_MAP.blue;
+
+    phase.months.forEach((month, mI) => {
       const card = document.createElement('div');
       card.className = 'month-card';
 
       const hdr = document.createElement('div');
-      hdr.className = 'month-header';
-      hdr.innerHTML = `
-        <div>
-          <h2>${month.name} ${month.trial ? '— ' + month.trial : ''}</h2>
-          <div class="meta">${phase.theme}</div>
-        </div>
-        <span class="month-progress">—</span>
-        <span class="toggle">▾</span>`;
-      hdr.addEventListener('click', () => {
+      hdr.className = `mhdr ${cm.mhdr}`;
+      hdr.innerHTML = `<div><div class="mhdr-title">${month.name}</div><div class="mhdr-sub">${phase.title}</div></div><div class="mhdr-right"><span class="mprog">—</span><span class="mtoggle">▾</span></div>`;
+
+      const body = document.createElement('div');
+      body.className = 'mbody';
+
+      hdr.addEventListener('click', ()=>{
         hdr.classList.toggle('collapsed');
         body.style.display = hdr.classList.contains('collapsed') ? 'none' : '';
       });
+
       card.appendChild(hdr);
 
-      const body = document.createElement('div');
-      body.className = 'month-body';
+      month.weeks.forEach((week, wI) => {
+        const wc = COLOR_MAP[week.color || phase.color] || cm;
 
-      month.weeks.forEach((week, weekI) => {
         const ws = document.createElement('div');
-        ws.className = 'week-section';
+        ws.className = 'week-sec';
 
         const wh = document.createElement('div');
-        wh.className = 'week-header';
-        wh.innerHTML = `<span class="week-label">${week.label}</span><span class="week-dates">${week.dates}</span><span class="week-focus">${week.focus}</span>`;
+        wh.className = `whdr ${wc.whdr}`;
+        wh.innerHTML = `<span class="wlabel">${week.label}</span><span class="wdates">${week.dates}</span><span class="wfocus">${week.focus}</span>`;
         ws.appendChild(wh);
 
         const tl = document.createElement('div');
         tl.className = 'task-list';
 
-        week.tasks.forEach((task, taskI) => {
-          const id = taskId(phaseI, monthI, weekI, taskI);
-          const done = !!taskStates[id];
+        week.tasks.forEach((task, tI) => {
+          const id = tid(pI, mI, wI, tI);
+          const isDone = !!states[id];
+
           const item = document.createElement('div');
-          item.className = 'task-item' + (done ? ' done' : '');
+          item.className = 'task-item' + (isDone ? ' done' : '');
           item.dataset.dev = task.dev;
 
-          const check = document.createElement('div');
-          check.className = 'task-check' + (done ? ' checked' : '');
-          check.addEventListener('click', () => toggleTask(id, check));
+          const chk = document.createElement('div');
+          chk.className = `chk ${wc.chk}` + (isDone ? ' on' : '');
+          chk.addEventListener('click', ()=> toggle(id, chk));
 
           const content = document.createElement('div');
-          content.className = 'task-content';
+          content.className = 'tcontent';
 
           const name = document.createElement('div');
-          name.className = 'task-name';
+          name.className = 'tname';
           name.textContent = task.name;
 
           const meta = document.createElement('div');
-          meta.className = 'task-meta';
-          meta.innerHTML = `<span class="tag tag-dev">${task.dev}</span>` +
-            (task.branch !== '—' ? `<span class="tag tag-branch">⎇ ${task.branch}</span>` : '') +
-            (task.dep && task.dep !== 'Nothing' ? `<span class="tag tag-dep">⚡ Needs: ${task.dep.length > 50 ? task.dep.slice(0,50)+'…' : task.dep}</span>` : '');
+          meta.className = 'tmeta';
+
+          const devTag = `<span class="tag ${wc.tag}">${task.dev}</span>`;
+          const branchTag = (task.branch && task.branch !== '—') ? `<span class="tag tag-branch">⌥ ${task.branch}</span>` : '';
+          const depTag = (task.dep && task.dep !== '—') ? `<span class="tag tag-dep">⚡ ${task.dep.length > 60 ? task.dep.slice(0,60)+'…' : task.dep}</span>` : '';
+          meta.innerHTML = devTag + branchTag + depTag;
 
           content.appendChild(name);
           content.appendChild(meta);
-          item.appendChild(check);
+          item.appendChild(chk);
           item.appendChild(content);
           tl.appendChild(item);
         });
@@ -613,7 +929,73 @@ function render() {
     container.appendChild(panel);
   });
 
-  container.appendChild(renderDepMap());
+  // ── DEP MAP ──
+  const DEP_MAP = [
+    {mod:"DB Schema + Migrations",needs:"Nothing",why:"Absolute starting point — all backend work depends on this"},
+    {mod:"CSS tokens + Inter font",needs:"Nothing",why:"FE devs cannot style anything until tokens exist"},
+    {mod:"Rate Limiting Middleware",needs:"PHP Router",why:"Must exist before any auth endpoint is exposed"},
+    {mod:"Auth — Register + Login",needs:"DB Schema",why:"Every module touching a user requires Auth first"},
+    {mod:"Role Middleware",needs:"Auth",why:"No protected route can be built before middleware"},
+    {mod:"Supplier Onboarding",needs:"Auth, Role Middleware",why:"Suppliers are users — Auth must work first"},
+    {mod:"Product CRUD",needs:"Supplier Onboarding, DB Schema",why:"Products belong to approved suppliers"},
+    {mod:"Product Listing (Customer)",needs:"Product CRUD, Categories",why:"Cannot display products until suppliers can create them"},
+    {mod:"SEO Meta + Sitemap",needs:"Product Detail Page",why:"SEO tags need product data to be populated"},
+    {mod:"Customs Duty Calc",needs:"Import Request Confirm",why:"Landed cost calculated when customer confirms quote"},
+    {mod:"DHL / AfterShip Logistics",needs:"Order Placement",why:"Labels and tracking generated after order is placed"},
+    {mod:"Cart System",needs:"Product Listing, Auth",why:"Cart items are products — user must be authenticated"},
+    {mod:"Order Placement",needs:"Cart, Wallet",why:"Order triggers escrow hold which requires wallet balance"},
+    {mod:"Wallet + Paystack/Stripe",needs:"Auth, wallets table in DB",why:"Wallet must exist before any order can be confirmed"},
+    {mod:"Wise Payout (China suppliers)",needs:"Escrow, Supplier Approval",why:"Payout triggered after escrow releases on delivery confirm"},
+    {mod:"Stripe Float Replenishment",needs:"Wise Payout",why:"Replenishes Wise balance that backs supplier payouts"},
+    {mod:"Escrow System",needs:"Wallet, Order Placement",why:"Escrow holds wallet funds linked to a specific order"},
+    {mod:"Chat — General",needs:"Auth, Supplier Onboarding",why:"Both buyer and supplier must exist as users"},
+    {mod:"Chat — Order-Linked",needs:"Chat General, Orders",why:"Extension of the general chat system"},
+    {mod:"Abandoned Cart Email",needs:"Cart, SMTP",why:"Needs cart data to exist + mailer to send"},
+    {mod:"Referral System",needs:"Auth, Wallet, Orders",why:"Rewards credited to wallet on first completed order"},
+    {mod:"Shorts Upload",needs:"Supplier Onboarding, Product CRUD",why:"Shorts link to products and belong to suppliers"},
+    {mod:"Shorts Feed",needs:"Shorts Upload, Follow System",why:"Cannot display shorts before suppliers create them"},
+    {mod:"Trust Score Engine",needs:"Orders, Chat Rating, Disputes, Shorts",why:"Score draws from multiple completed modules"},
+    {mod:"Capital Loop Engine",needs:"Trust Score, Shorts, Order completion",why:"Credits earned from performance across features"},
+    {mod:"Supplier Analytics",needs:"Product views + conversion tracking",why:"Analytics aggregate data from multiple event types"},
+    {mod:"Promoted Listings",needs:"Product CRUD, Wallet",why:"Billing deducts from supplier wallet daily"},
+    {mod:"Dispute System",needs:"Orders, Escrow, Chat",why:"Disputes raised on orders, linked to escrow holds"},
+    {mod:"Admin Panel",needs:"All core modules",why:"Admin manages users, products, orders, content"},
+    {mod:"Security Hardening",needs:"All features complete",why:"Cannot audit security until features are fully built"},
+    {mod:"Loyalty Points",needs:"Orders, Wallet",why:"Points earned on completed orders, redeemed to wallet"},
+    {mod:"Affiliate System",needs:"Auth, Wallet, Orders",why:"Commissions credited to wallet on tracked conversions"},
+    {mod:"Android App",needs:"All web APIs stable",why:"Mobile app consumes the same APIs — must be stable first"},
+  ];
+
+  const depPanel = document.createElement('div');
+  depPanel.className = 'panel';
+
+  const depNote = document.createElement('div');
+  depNote.className = 'phase-note pn-blue';
+  depNote.textContent = 'Build modules in dependency order. Nothing in column B can start until everything it depends on in column A is merged to dev.';
+  depPanel.appendChild(depNote);
+
+  const depMap = document.createElement('div');
+  depMap.className = 'dep-map';
+
+  const depH = document.createElement('h3');
+  depH.style.cssText = 'font-family:Syne,sans-serif;font-size:15px;font-weight:700;color:#1E56B0;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #1E56B0';
+  depH.textContent = '📦 Full Module Dependency Map — Build in This Order';
+  depMap.appendChild(depH);
+
+  const grid = document.createElement('div');
+  grid.className = 'dep-grid';
+
+  DEP_MAP.forEach(d => {
+    const c = document.createElement('div');
+    c.className = 'dep-card';
+    c.innerHTML = `<div class="dmod">${d.mod}</div><div class="dneeds">Needs: <strong>${d.needs}</strong></div><div class="dwhy">${d.why}</div>`;
+    grid.appendChild(c);
+  });
+
+  depMap.appendChild(grid);
+  depPanel.appendChild(depMap);
+  container.appendChild(depPanel);
+
   updateStats();
 }
 
