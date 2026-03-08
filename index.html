@@ -818,20 +818,33 @@ function toggle(id, chk){
   updateMonthProg();
 }
 
-function setFilter(dev, e){
-  currentFilter = dev;
-  document.querySelectorAll('.fchip').forEach(b=>b.classList.remove('active'));
-  e.target.classList.add('active');
-  document.querySelectorAll('.task-item').forEach(item=>{
+function applyFilter(dev){
+  // Only filter items inside the currently active panel
+  const activePanel = document.querySelector('.panel.active');
+  if(!activePanel) return;
+  activePanel.querySelectorAll('.task-item').forEach(item=>{
     const d = item.dataset.dev || '';
     item.style.display = (dev==='all' || d.includes(dev)) ? '' : 'none';
   });
 }
 
+function setFilter(dev, e){
+  currentFilter = dev;
+  document.querySelectorAll('.fchip').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  applyFilter(dev);
+}
+
 function showTab(i, btn){
-  document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',j===i));
+  document.querySelectorAll('.panel').forEach((p,j)=>{
+    p.classList.toggle('active',j===i);
+    // Clear any inline display styles from filter so panel CSS takes over
+    if(j!==i) p.querySelectorAll('.task-item').forEach(item=>item.style.display='');
+  });
   document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
   document.getElementById('filterRow').style.display = i===8 ? 'none' : '';
+  // Re-apply current filter to the newly active panel
+  if(i!==8) applyFilter(currentFilter);
 }
 
 function updateMonthProg(){
