@@ -173,6 +173,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <div class="pill pill-total">Total <span id="sTotal">0</span></div>
       <div class="pill pill-done">Done <span id="sDone">0</span></div>
       <div class="pill pill-left">Left <span id="sLeft">0</span></div>
+      <div class="pill" id="dbPill" style="background:rgba(255,255,255,0.1);color:#8BAFD4">⬤ DB</div>
     </div>
     <div class="prog-wrap">
       <div class="prog-bar"><div class="prog-fill" id="gBar" style="width:0%"></div></div>
@@ -778,12 +779,67 @@ const D = [
 ]; // end DATA
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SUPABASE CONFIG
+// ─────────────────────────────────────────────────────────────────────────────
+// ⚠️  PASTE YOUR SUPABASE ANON KEY BELOW (Settings → API → anon public key)
+const SUPABASE_URL = 'https://gfrtnxjcepzyjoswmdhh.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmcnRueGpjZXB6eWpvc3dtZGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MTY1MjEsImV4cCI6MjA5MTA5MjUyMX0.UuhEaMAtfBpFvCXNApOCln-mlVYcrIApn1W41G_6Kbc';
+const ROW_ID = 'snafrate_v4';
+
+async function sbFetch(path, opts={}){
+  const res = await fetch(SUPABASE_URL + path, {
+    ...opts,
+    headers:{
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || '',
+      ...(opts.headers||{})
+    }
+  });
+  if(!res.ok){ const t=await res.text(); throw new Error(t); }
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : null;
+}
+
+function setDbPill(status){
+  const p = document.getElementById('dbPill');
+  if(!p) return;
+  if(status==='ok'){ p.style.background='rgba(26,122,74,0.25)'; p.style.color='#4ADE80'; p.textContent='⬤ DB synced'; }
+  else if(status==='saving'){ p.style.background='rgba(244,163,0,0.2)'; p.style.color='#F4A300'; p.textContent='⬤ DB saving…'; }
+  else{ p.style.background='rgba(192,57,43,0.2)'; p.style.color='#F87171'; p.textContent='⬤ DB offline'; }
+}
+
+async function loadFromSupabase(){
+  try{
+    const rows = await sbFetch(`/rest/v1/checklist_states?id=eq.${ROW_ID}&select=states`);
+    setDbPill('ok');
+    if(rows && rows.length && rows[0].states) return rows[0].states;
+  }catch(e){ console.warn('Supabase load failed, using local fallback:', e); setDbPill('err'); }
+  // fallback to localStorage
+  try{ return JSON.parse(localStorage.getItem('snafrate_v4')||'{}'); }catch(e){ return {}; }
+}
+
+async function saveToSupabase(s){
+  setDbPill('saving');
+  try{
+    await sbFetch(`/rest/v1/checklist_states`, {
+      method:'POST',
+      prefer:'resolution=merge-duplicates',
+      body: JSON.stringify({ id: ROW_ID, states: s, updated_at: new Date().toISOString() })
+    });
+    setDbPill('ok');
+  }catch(e){ console.warn('Supabase save failed, using local fallback:', e); setDbPill('err'); }
+  // always mirror to localStorage as backup
+  try{ localStorage.setItem('snafrate_v4', JSON.stringify(s)); }catch(e){}
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────────────────────────────────────
 let states = {};
-try { states = JSON.parse(localStorage.getItem('snafrate_v4') || '{}'); } catch(e){}
-
 let currentFilter = 'all';
+let _saveTimer = null;
 
 const COLOR_MAP = {
   blue: {mhdr:'c-blue', whdr:'wc-blue', chk:'c-blue', tag:'tag-dev-blue'},
@@ -796,18 +852,21 @@ const COLOR_MAP = {
 function tid(pI,mI,wI,tI){ return `${pI}-${mI}-${wI}-${tI}`; }
 
 function save(){
-  try{ localStorage.setItem('snafrate_v4', JSON.stringify(states)); }catch(e){}
   updateStats();
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(()=> saveToSupabase(states), 600);
 }
 
-function resetAll(){
-  if(!confirm('Reset all checkboxes? This cannot be undone.')) return;
+async function resetAll(){
+  if(!confirm('Reset ALL checkboxes for ALL devs? This cannot be undone.')) return;
   states = {};
-  save();
   document.querySelectorAll('.chk').forEach(el=>{
     el.classList.remove('on');
     el.closest('.task-item').classList.remove('done');
   });
+  updateStats();
+  await saveToSupabase(states);
+  try{ localStorage.removeItem('snafrate_v4'); }catch(e){}
 }
 
 function toggle(id, chk){
@@ -931,6 +990,7 @@ function render(){
 
           const chk = document.createElement('div');
           chk.className = `chk ${wc.chk}` + (isDone ? ' on' : '');
+          chk._tid = id;
           chk.addEventListener('click', ()=> toggle(id, chk));
 
           const content = document.createElement('div');
@@ -1036,7 +1096,49 @@ function render(){
   updateStats();
 }
 
-render();
+// ─────────────────────────────────────────────────────────────────────────────
+// INIT — load from Supabase then render
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPABASE TABLE SETUP (run once in Supabase SQL editor):
+//   create table if not exists checklist_states (
+//     id text primary key,
+//     states jsonb not null default '{}',
+//     updated_at timestamptz default now()
+//   );
+//   alter table checklist_states enable row level security;
+//   create policy "public read" on checklist_states for select using (true);
+//   create policy "public write" on checklist_states for insert with check (true);
+//   create policy "public update" on checklist_states for update using (true);
+
+(async ()=>{
+  // Show loading state
+  const panels = document.getElementById('panels');
+  panels.innerHTML = '<div style="padding:40px;text-align:center;font-family:DM Mono,monospace;color:#6B7280;font-size:13px;">⏳ Loading shared checklist from database…</div>';
+
+  states = await loadFromSupabase();
+  panels.innerHTML = '';
+  render();
+
+  // Poll for updates from other devs every 30 seconds
+  setInterval(async ()=>{
+    const fresh = await loadFromSupabase();
+    const changed = JSON.stringify(fresh) !== JSON.stringify(states);
+    if(changed){
+      states = fresh;
+      // Re-apply all checkbox states to DOM without full re-render
+      document.querySelectorAll('.task-item').forEach(item=>{
+        const chk = item.querySelector('.chk');
+        if(!chk) return;
+        const id = chk._tid;
+        if(!id) return;
+        const on = !!states[id];
+        chk.classList.toggle('on', on);
+        item.classList.toggle('done', on);
+      });
+      updateStats();
+    }
+  }, 30000);
+})();
 </script>
 </body>
 </html>
